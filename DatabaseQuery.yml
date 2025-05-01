@@ -21,5 +21,14 @@ steps:
     # Run this script with these paramentes
     script: perl scripts/QueryDBs.pl "$(KEY)" "$(PASSWORD)" "Report_SummaryOfSales.sql" "salesdb" "100" "0";
 
-
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)'
+    contents: '(*.csv)'
+    targetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: drop
+    
     
