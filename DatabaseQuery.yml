@@ -1,0 +1,25 @@
+# A pipeline to run a perl script that runs a query in a database
+
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+resources:
+  repositories:
+  - repository: MAINREPO
+    type: git
+    name: MINREPO
+    ref: master
+variables:
+  - group: GROUPSECRETS
+
+steps:
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    # Run this script with these paramentes
+    script: perl scripts/QueryDBs.pl "$(KEY)" "$(PASSWORD)" "Report_SummaryOfSales.sql" "salesdb" "100" "0";
+
+
+    
