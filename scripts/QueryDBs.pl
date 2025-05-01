@@ -39,3 +39,6 @@ my $DBPayload_Specific = '{
 "password": "' . $password . '"
 }';
 
+my $databaseis = "resourcesDb";
+
+# To be continued... :)
