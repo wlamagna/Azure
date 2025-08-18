@@ -27,3 +27,20 @@ docker push $ACR/react-frontend:staging
 3) Caddyfile
 
 Basic auth + simple routing: /{anything} -> web, /api/* -> api.
+
+:80 {
+  encode zstd gzip
+
+  basicauth /* {
+    {$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+  }
+
+  @api path /api* /api/* 
+  reverse_proxy @api api:3000
+
+  reverse_proxy web:3000
+}
+
+* Change ports if your containers listen on different ports.
+
+*The basic auth covers every path (/*). Tweak if you only want to guard certain paths.
