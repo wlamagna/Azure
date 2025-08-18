@@ -12,8 +12,18 @@ Caddyfile (basic auth + routing)
 
 📌 Build & push your images to ACR from your GitHub repo (two images: node-api, react-frontend) and tag them staging.
 Example local build/push after az acr login:
+
 ACR=yourprefixacr.azurecr.io
+
 docker build -t $ACR/node-api:staging ./path/to/api
+
 docker push $ACR/node-api:staging
+
 docker build -t $ACR/react-frontend:staging ./path/to/web
+
 docker push $ACR/react-frontend:staging
+
+
+3) Caddyfile
+
+Basic auth + simple routing: /{anything} -> web, /api/* -> api.
