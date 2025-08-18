@@ -1,0 +1,78 @@
+trigger:
+  none   # we’ll use pipeline completion trigger instead
+
+resources:
+  pipelines:
+    - pipeline: buildPipeline
+      source: azure-pipelines-build
+      trigger:
+        branches:
+          include: [ staging ]
+
+stages:
+- stage: Deploy
+  displayName: Deploy to Staging
+  jobs:
+  - job: TerraformApply
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+
+    # Install Terraform
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: '1.6.6'
+
+    # Init Terraform
+    - task: TerraformTaskV4@4
+      displayName: Terraform Init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: 'terraform'
+        backendServiceArm: 'AzureRM'   # ARM service connection
+        backendAzureRmResourceGroupName: '<backend-rg>'
+        backendAzureRmStorageAccountName: '<backend-storage>'
+        backendAzureRmContainerName: 'tfstate'
+        backendAzureRmKey: 'iac-staging.tfstate'
+
+    # Plan
+    - task: TerraformTaskV4@4
+      displayName: Terraform Plan
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: 'terraform'
+        environmentServiceNameAzureRM: 'AzureRM'
+        commandOptions: >
+          -var prefix=wl-stg
+          -var basic_auth_user=$(BASIC_AUTH_USER)
+          -var basic_auth_hash=$(BASIC_AUTH_HASH)
+
+    # Apply
+    - task: TerraformTaskV4@4
+      displayName: Terraform Apply
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        workingDirectory: 'terraform'
+        environmentServiceNameAzureRM: 'AzureRM'
+        commandOptions: >
+          -auto-approve
+          -var prefix=wl-stg
+          -var basic_auth_user=$(BASIC_AUTH_USER)
+          -var basic_auth_hash=$(BASIC_AUTH_HASH)
+
+    # Optional: restart staging slot so it reloads new images
+    - task: AzureCLI@2
+      displayName: Restart App Service Staging Slot
+      inputs:
+        azureSubscription: 'AzureRM'
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az webapp restart \
+            --resource-group wl-stg-rg \
+            --name wl-stg-app \
+            --slot staging
