@@ -1,0 +1,55 @@
+trigger:
+  branches:
+    include:
+      - staging
+
+variables:
+  # Replace with your ACR name (from Terraform output)
+  ACR_NAME: 'wlstgacr'
+  ACR_LOGIN_SERVER: 'wlstgacr.azurecr.io'
+  IMAGE_TAG: 'staging'
+
+stages:
+- stage: BuildAndPush
+  displayName: Build and Push Docker Images
+  jobs:
+  - job: Build
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+
+    - task: DockerInstaller@0
+      displayName: Install Docker
+
+    # Log in to ACR
+    - task: Docker@2
+      displayName: Login to ACR
+      inputs:
+        command: login
+        containerRegistry: '$(ACR_NAME)-service-connection' # Create service connection in Project Settings → Service connections
+
+    # Build API
+    - task: Docker@2
+      displayName: Build API image
+      inputs:
+        command: buildAndPush
+        repository: 'node-api'
+        dockerfile: 'api/Dockerfile'   # path inside your repo
+        containerRegistry: '$(ACR_NAME)-service-connection'
+        tags: |
+          $(IMAGE_TAG)
+
+    # Build Frontend
+    - task: Docker@2
+      displayName: Build Web image
+      inputs:
+        command: buildAndPush
+        repository: 'react-frontend'
+        dockerfile: 'web/Dockerfile'   # path inside your repo
+        containerRegistry: '$(ACR_NAME)-service-connection'
+        tags: |
+          $(IMAGE_TAG)
+
+    - publish: $(Pipeline.Workspace)
+      artifact: build_artifacts
