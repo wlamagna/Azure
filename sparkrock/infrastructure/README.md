@@ -5,3 +5,13 @@ Deploy your app using docker-compose (App Service supports this via linux_fx_ver
 Put a lightweight Caddy reverse proxy in front with HTTP Basic Auth guarding the whole site.
 
 Pull images from Azure Container Registry (you’ll build & push from your GitHub repo).
+
+Files included below:
+
+terraform/main.tf (+ quick variables.tf)
+
+docker-compose.yml (multi-container: proxy + api + web)
+
+.env.sample
+
+Caddyfile (basic auth + routing)
