@@ -15,3 +15,12 @@ Triggered after build completes.
 Uses Terraform (or Azure CLI) to apply infra.
 
 Restarts App Service staging slot so it pulls the new images.
+
+
+👉 Setup required in Azure DevOps:
+
+Create an Azure Resource Manager service connection called AzureRM (Project Settings → Service connections → Azure Resource Manager).
+
+Store sensitive values (BASIC_AUTH_USER, BASIC_AUTH_HASH) in Pipeline → Variables (mark as secret).
+
+Configure Terraform backend storage (Storage Account + Container) for state.
