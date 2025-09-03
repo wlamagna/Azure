@@ -1,0 +1,7 @@
+# Script used to get keys or set them in AKS
+
+az keyvault secret show --name "DatabricksCluster-tatata" --vault-name "EUWRESOURCENAMEAKV001" | Set-Clipboard
+$meme=az keyvault secret show --name "DatabricksCluster-tatata" --vault-name "EUWRESOURCENAMEAKV001" | Select-String "value"
+$meme -replace '.*value": "(.*)"','$1' | Set-Clipboard
+
+
