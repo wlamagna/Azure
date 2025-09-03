@@ -6,6 +6,8 @@ $meme -replace '.*value": "(.*)"','$1' | Set-Clipboard
 
 # Get login from a VM
 $meme=az keyvault secret show --name 'Domainadminpassword' --vault-name EUWRESOURCEAKV01 --query 'value' -o tsv
+$vm="VMNAME2D"
+az keyvault secret show --name $vm-localadminpassword --vault-name RESOURCEAKV01
 
 # When i need to set a key:
 az keyvault secret set --name MDResource01 --vault-name EUWRESOURCEAKV01 --value "https://tata" 
