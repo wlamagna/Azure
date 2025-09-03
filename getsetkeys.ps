@@ -4,6 +4,8 @@ az keyvault secret show --name "DatabricksCluster-tatata" --vault-name "EUWRESOU
 $meme=az keyvault secret show --name "DatabricksCluster-tatata" --vault-name "EUWRESOURCENAMEAKV001" | Select-String "value"
 $meme -replace '.*value": "(.*)"','$1' | Set-Clipboard
 
+# Get login from a VM
+$meme=az keyvault secret show --name 'Domainadminpassword' --vault-name EUWRESOURCEAKV01 --query 'value' -o tsv
 
 # When i need to set a key:
 az keyvault secret set --name MDResource01 --vault-name EUWRESOURCEAKV01 --value "https://tata" 
