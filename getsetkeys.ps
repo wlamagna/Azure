@@ -5,3 +5,5 @@ $meme=az keyvault secret show --name "DatabricksCluster-tatata" --vault-name "EU
 $meme -replace '.*value": "(.*)"','$1' | Set-Clipboard
 
 
+# When i need to set a key:
+az keyvault secret set --name MDResource01 --vault-name EUWRESOURCEAKV01 --value "https://tata" 
