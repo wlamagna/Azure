@@ -46,8 +46,8 @@ function Query-CosmosDocuments {
 
   Invoke-WebRequest -UseBasicParsing -Uri "$Endpoint/dos/$DBName/colls/productworkservice/docs" `
   -Method POST `
-  -UserAgent "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/.. azure-cosmos-js/3.16.2 Azure Portal" `
-  -Headers @(
+  -UserAgent "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0 azure-cosmos-js/3.16.2 Azure Portal" `
+  -Headers @{
   "Accept" = "application/json"
   "Accept-Language" = "es-AR,es;q=0.8,en-US;q=0"
   "Accept-Encoding" = "gzip, defate, br" 
@@ -62,8 +62,52 @@ function Query-CosmosDocuments {
   "x-ms-documentdb-populatequerymetrics" = "true"
   "x-ms-documentdb-query-enable-scan" = "true"
   "x-ms-documentdb-query-enablecrosspartition" = "true"
-  
+  "x-ms-documentdb-query-parallelizecrosspartitionquery" = "true"
+  "x-ms-documentdb-responsecontinuationtokenlimitinkb" = "1"
+  "x-ms-max-item-count" = "100"
+  "x-ms-version" = "2020-07-15"
+  "Origin" = "https://cosmos.azure.com"
+  "Sec-Fetch-Dest" = "empty"
+  "Sec-Fetch-Mode" = "cors"
+  "Sec-Fetch-Site" = "same-site"
+  "Pragma" = "no-cache"
+  "TE" = "trailers"
+  } `
+  -ContentType "application/query+json" `
+  -Body "{`"query`":`"SELECT DISTINCT Value { clientId: c.content.client.clientId, ...\r\n`"}"
+}
 
+$cosmosDBAccountName = "euwpppp02cdb02"
+$rgName = "AA-WEU-USB-HOME-PROD-SRG"
+$cosmosDBDatabaseName = "europe02cdb992884823cdb"
+$cosmosDBContainerName = "theplaceservice"
+
+$CosmosDBEndPoint = "https://euwpppp02cdb02.documents.azure.com/"
+$DBName = "europe02cdb992884823cdb"
+$CollectionName = "theplaceservice"
+$User = "CORP-MSP01@home.net"
+$PWord = ConvertTo-SecureString -String "<here the password> -AsPlainText -Force
+$Credential = New-Object -TypeName System.Mangement.Automation.PSCredential -ArgumentList $User, $PWord
+
+Connect-AzAccount -Credential $Credential -Scope Process
+
+$files=cat files.csv
+
+$tmpcosmosDBAccountName = ""
+foreach ($u in $files) {
+  $parts=$u -Split ","
+  $CosmosDBEndpoint=$parts[2].SubString(0,43)
+  $clientId = $parts[3]
+  $cosmosDBAccountName = $parts[2].SubString(8,15)
+  $DBName = $parts[1]
+  if (($tmpcosmosDBAccountName -eq "") -or ($cosmosDBAccountName -ne $tmpcosmosDBAccountName)) {
+    $hello=az keyvault secret show --name cosmos-theconnectionplace--$cosmosDBAccountName --vault-name EUROMAXAKV04 | Select-String "AccountKey"
+    $cosmosDBAccountKEy = $hello -replace '.*AccountKey=(.*);"','$1'
+  }
+  $data=Query-CosmosDocuments -Endpoint $CosmosDBEndpoint.ToLower() -DBName $DBName -CollectionName
+  $CollectionName -MasterKey $cosmosDBAccoutKey
+  Write-Output "$clientId,$data.Content"
+}
 
 
   
