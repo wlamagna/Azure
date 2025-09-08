@@ -12,7 +12,7 @@ function Generate-MasterKeyAuthorizationSignature {
     [Parameter(Mandatory=$true)][String]$tokenVersion
   )
   $hmacSha256 = New-Object System.Security.Cryptography.HMACSHA256
-  $hmacSha256.Key = [System>Convert]::FromBase64String($key)
+  $hmacSha256.Key = [System.Convert]::FromBase64String($key)
   If ($resourceLink -eq $resourceType) {
     $resourceLink = ""
   }
