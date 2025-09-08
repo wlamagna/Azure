@@ -36,23 +36,21 @@ function Query-CosmosDocuments {
   $ResourceLink = "dos/$DBName/colls/$CollectionName"
 
   $dateTime = [DateTime]::UtcNow.ToString("r")
-  $authHeader = Generate-MasterKeyAuthorizationSignature -Verb $Verb -resourceLink $ResourceLink -
-  -key $MasterKey -KeyType "master" -TokenVersion "1.0"
+  $authHeader = Generate-MasterKeyAuthorizationSignature -Verb $Verb -resourceLink $ResourceLink -ResourceType $ResourceType -Date $dateTime -key $MasterKey -KeyType "master" -TokenVersion "1.0"
 
-  $header = @(authorization-$authHeader;"x-ms-version"="2017-02-22";"x-ms-documentdb-isquery"="true";
-  "x-ms-documentdb-query-enablecrosspartition"="True";"x-ms-date"=$dateTime)
+  $header = @{authorization-$authHeader;"x-ms-version"="2017-02-22";"x-ms-documentdb-isquery"="True";"x-ms-documentdb-query-enablecrosspartition"="True";"x-ms-date"=$dateTime}
   $contentType = "application/query+json"
-  $queryUrl = "$Endpoint$ResourceLink/docs"
+  $queryUri = "$Endpoint$ResourceLink/docs"
 
-  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::T1s12
+  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
   Invoke-WebRequest -UseBasicParsing -Uri "$Endpoint/dos/$DBName/colls/productworkservice/docs" `
   -Method POST `
-  -UserAgent "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/... put here what you need" `
+  -UserAgent "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/.. azure-cosmos-js/3.16.2 Azure Portal" `
   -Headers @(
   "Accept" = "application/json"
-  "Accept-Language" = "es-AR,es;q.... "
-  "Accept-Encoding" = "gzip, defate, bx" 
+  "Accept-Language" = "es-AR,es;q=0.8,en-US;q=0"
+  "Accept-Encoding" = "gzip, defate, br" 
   "Referer" = "https://cosmos.azure.com/"
   "authorization" = $header.authorization
   "cache-control" = "no-cache"
