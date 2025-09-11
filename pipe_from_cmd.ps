@@ -1,0 +1,35 @@
+# Imagine you have created an ADO yaml to execute a pipe-line like single script
+# I just did that to automate some imaginary tasks.  Since i am #opentowork i use
+# my imagination to practice, i hope someone needs real solutions some day so i have
+# the chance to be there and have a job again.
+
+param (
+  [string] $CLI = "99",
+  [string] $EMAIL = "pepe@comodo.com
+)
+
+# Oh, yeah, here some mix between VBScript and trying to automate the acquisition of a token:
+# Not perfect but saved me time
+while (($bearer -eq "") -or (!$bearer)) {
+  $cmd = Read-Host "You need a User bearer. Shall i try to get one ?"
+  if (($cmd -eq "y") -or ($cmd -eq "yes")) {
+    Start-Process microsoft-edge:https://piripipi/Auth -WindowStyle maximized
+    Sleep 5
+    Start-Process microsoft-edge:https://piripipi/api/authentication -WindowStyle maximized
+    Sleep 3
+    $wshell = New-Object -ComObject wscript.shell;
+    $wshell.SendKeys("{TAB}")
+    $wshell.SendKeys("{TAB}")
+    $wshell.SendKeys('^a')
+    $wShell.SendKeys('^c')
+    Sleep 1
+    $pepe=$(Get-Clipboard)
+    $wshell.SendKeys('^w')
+    $wshell.SendKeys('^w')
+    $pepe -match '.*"token": "(.*)",.*'
+    $tmpchar = $matches[1]
+    $bearer = $tmpchar
+    $global:bearer=$tmpchar
+  }
+
+}
