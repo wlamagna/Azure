@@ -31,5 +31,49 @@ while (($bearer -eq "") -or (!$bearer)) {
     $bearer = $tmpchar
     $global:bearer=$tmpchar
   }
-
 }
+
+Write-Host "Read: $email"
+$personalToken = "laikit?"
+$patToken = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":$($personalToken)"))
+
+$headers = @{
+  Authorization = "Basic " + $patToken
+  Accept = "text/html;api-version=5.1-preview.1;excludeUrls=true;enumsAsNumbers=true;msDateFormat=true;noArrayWrap=true"
+}
+$payload = '
+{
+  "stagesToSkip": [],
+  "resources": {
+    "repositories": {
+      "self": {
+        "refName": "refs/heads/master"
+      }
+    }
+  },
+  "variables": {
+    "CLIENTID": {
+      "value":"' + $CLI + '"
+    }, "EMAIL": {
+      "value":"' + $EMAIL + '"
+    },
+    "BEARER":{
+      "value":"' + $bearer + '"
+    }
+  }
+}
+'
+
+$repoUrl = "https://open2work.visualstudio.com/b15acda5-3883-3882-473s-acjkdjojf/_apis/pipelines/2677/runs"
+# Run the pipeline :
+$output = Invoke-RestMethod -Uri $repoUrl -Method Post -Headers $headers -Body $payload -ContentType 'application/json'
+
+# Wait until it completes:
+
+do {
+  $ongoing = Invoke-RestMethod -Uri $output.url -Method Get -Headers $headers
+  Write-Host -NoNewLine "."
+  Start-Sleep -Seconds 3
+} while ($ongoing.state -eq "inProgress")
+
+
