@@ -1,6 +1,8 @@
+
+```
 az group create -g group1 --location eastus
 az acr create -g group1 --name myacr --sku Basic
-
+```
 # Check it:
 az acr list -o table
 
