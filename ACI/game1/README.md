@@ -1,3 +1,4 @@
+# This project is an Azure Container instance with a snake game.  It is in progress, the game was just vibe coded (i won't) lie at this point in life ! but it is nice, i found interesting putting it in a container and publishing it.  It is in progress, not yet available here but soon.
 
 ```
 az group create -g group1 --location eastus
