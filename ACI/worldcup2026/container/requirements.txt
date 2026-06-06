@@ -1,0 +1,4 @@
+Flask
+azure-cosmos
+azure-keyvault
+azure-identity
