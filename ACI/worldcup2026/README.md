@@ -1,6 +1,6 @@
 ## This project is an Azure Container instance with an API that returns randomly a football player name and nationality and the football players are all the players of the WorldCup 2026.  
 
-* The list of football players and nationality was created also by me, i could not find a dataset in the web so i created it from scratch.
+* The list of football players and nationality was created also by me, i could not find a dataset in the web so i created it from scratch [WorldCup2026Players](worldcup2026/tools/players.csv)
 
 * Diagram
 
@@ -60,7 +60,7 @@ az keyvault create --name "$KVNAME" \
 ```
 ./cosmos_read.py
 ```
-#### Create the Docker image (from azure CLI) - no need to install anything more.  The Dockerfile is in the directory [Dockerfile ](https://github.com/wlamagna/Azure/tree/main/ACI/worldcup2026/container)
+#### Create the Docker image (from azure CLI) - no need to install anything more.  The Dockerfile is in the directory [Dockerfile](https://github.com/wlamagna/Azure/tree/main/ACI/worldcup2026/container)
 ```
 az acr build --image $ACR.azurecr.io/$CN:v1` \
 --registry "$ACR" --file Dockerfile .
