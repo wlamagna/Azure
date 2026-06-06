@@ -1,6 +1,8 @@
-#
+# This project is an Azure Container instance with an API that returns randomly a football player name and nationality
+# and the football players are all the participans of the WorldCup 2026.  The list of football players and nationality was
+# created also by me, i could not find a dataset in the web so i created it from scratch.
 
-### It is Saturday, no wind outside, then it is a good moment to practice some of the skills acquired on the az-305 and az-104 and 
+## It is Saturday, no wind outside, then it is a good moment to practice some of the skills acquired on the az-305 and az-104 and 
 play today with some continers.
 
 # I recommend setting a python virtual environment, you can just use the cloudshell.  But it is not really required, only some tip.
