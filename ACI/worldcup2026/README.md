@@ -40,7 +40,7 @@ az cosmosdb create -n "$COSMOSDB" \
 #### Create the Azure Container Registry we will use to store the image and also to build the Dockerfile
 #### In Access keys > Admin user (enable) and copy the password (you will need it later)
 ```
-az acr create --resource-group $RG --name acr2026 --sku Basic
+az acr create --resource-group $RG --name $ACR --sku Basic
 ```
 ### Prepare Key Vault
 #### Set the key for the cosmos DB into the keyvault.
