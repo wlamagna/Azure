@@ -3,7 +3,7 @@
 * The list of football players and nationality was created also by me, i could not find a dataset in the web so i created it from scratch.
 
 * Diagram
-!(diagram.png)
+![Topology](diagram.png)
 
 ### It is Saturday, no wind outside, then it is a good moment to practice some of the skills acquired on the az-305 and az-104 and play today with some continers.
 
