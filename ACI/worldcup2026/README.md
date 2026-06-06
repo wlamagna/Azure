@@ -57,7 +57,7 @@ is from previously when you created the Resource.
 ```
 ./cosmos_read.py
 ```
-### Create the Docker image (from azure CLI) - no need to install anything more.  The Dockerfile is in the directory [Dockerfile (https://github.com/wlamagna/Azure/tree/main/ACI/worldcup2026/container)][Docker image] 
+### Create the Docker image (from azure CLI) - no need to install anything more.  The Dockerfile is in the directory [Dockerfile ](https://github.com/wlamagna/Azure/tree/main/ACI/worldcup2026/container)
 ```
 az acr build --image $ACR.azurecr.io/$CN:v1` \
 --registry "$ACR" --file Dockerfile .
