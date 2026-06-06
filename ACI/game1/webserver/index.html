@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Snake: Jugador vs CPU</title>
+  <style>
+    :root{ --bg:#0b1220; --panel:#0f1b33; --text:#e6edf6; --muted:#9fb0c3; --accent:#66d9ef; --p1:#22c55e; --p2:#f97316; --danger:#ef4444; }
+    *{ box-sizing:border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body{ margin:0; background:linear-gradient(180deg,#070b14,#0b1220); color:var(--text); display:flex; align-items:center; justify-content:center; min-height:100vh; padding:18px; }
+    .wrap{ width:min(980px, 100%); display:grid; grid-template-columns: 1fr 320px; gap:16px; }
+    @media (max-width: 900px){ .wrap{ grid-template-columns: 1fr; } }
+    .card{ background:rgba(15,27,51,.85); border:1px solid rgba(102,217,239,.12); border-radius:18px; box-shadow: 0 12px 30px rgba(0,0,0,.35); }
+    .game{ padding:14px; }
+    canvas{ width:100%; height:auto; background:#061026; border-radius:14px; display:block; border:1px solid rgba(255,255,255,.06); }
+    .side{ padding:16px; display:flex; flex-direction:column; gap:12px; }
+    .h1{ font-size:18px; font-weight:700; letter-spacing:.2px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; }
+    button{ cursor:pointer; border:0; border-radius:12px; padding:10px 12px; background:#142750; color:var(--text); font-weight:650; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+    button:hover{ filter:brightness(1.08); }
+    button:active{ transform: translateY(1px); }
+    .pill{ padding:8px 10px; border-radius:999px; font-size:12.5px; font-weight:650; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); color:var(--muted); }
+    .pill strong{ color:var(--text); }
+    .legend{ display:grid; gap:8px; }
+    .legend-item{ display:flex; align-items:center; gap:10px; color:var(--muted); font-size:13px; }
+    .sw{ width:14px; height:14px; border-radius:4px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+    .sw.p1{ background:var(--p1); }
+    .sw.p2{ background:var(--p2); }
+    .sw.food{ background: #60a5fa; }
+    .sw.wall{ background: #94a3b8; }
+    .notes{ color:var(--muted); font-size:13px; line-height:1.45; }
+    .status{ padding:10px 12px; border-radius:14px; background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.08); }
+    .status b{ color:var(--text); }
+    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; padding:2px 6px; border-radius:8px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); color:var(--text); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card game">
+      <canvas id="c" width="600" height="600" aria-label="Juego Snake" role="img"></canvas>
+    </div>
+
+    <div class="card side">
+      <div class="h1">Snake: <span style="color:var(--p1)">Jugador</span> vs <span style="color:var(--p2)">CPU</span></div>
+
+      <div class="row">
+        <div class="pill">Puntaje Jugador: <strong id="scoreP">0</strong></div>
+        <div class="pill">Puntaje CPU: <strong id="scoreC">0</strong></div>
+        <div class="pill">Velocidad: <strong id="spd">1.00×</strong></div>
+      </div>
+
+      <div class="row">
+        <button id="btnStart">Iniciar</button>
+        <button id="btnPause">Pausa</button>
+        <button id="btnRestart">Reiniciar</button>
+      </div>
+
+      <div class="status" id="status">
+        <b>Listo.</b> Usa <span class="kbd">WASD</span> o <span class="kbd">↑ ↓ ← →</span>. Come comida para crecer.
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><span class="sw p1"></span>Serpiente del jugador</div>
+        <div class="legend-item"><span class="sw p2"></span>Serpiente de la CPU</div>
+        <div class="legend-item"><span class="sw food"></span>Comida</div>
+        <div class="legend-item"><span class="sw wall"></span>Pared (si chocas, pierdes)</div>
+      </div>
+
+      <div class="notes">
+        <b>Reglas “clásicas”:</b>
+        <ul style="margin:8px 0 0 18px; padding:0">
+          <li>Si chocas con pared o contigo mismo, pierdes.</li>
+          <li><b>Si tu cabeza toca cualquier parte de la otra serpiente, pierdes.</b></li>
+          <li>Si ambos entran a la misma casilla al mismo tiempo, es <b>empate</b>.</li>
+        </ul>
+        <div style="margin-top:10px">Tip: el CPU usa búsqueda de camino (BFS) hacia la comida e intenta evitar choques.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ===== Config =====
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+
+  const CELL = 20;
+  const COLS = Math.floor(canvas.width / CELL);
+  const ROWS = Math.floor(canvas.height / CELL);
+
+  const COLORS = {
+    bg: '#061026',
+    grid: 'rgba(255,255,255,.05)',
+    p1: '#22c55e',
+    p1Head: '#16a34a',
+    p2: '#f97316',
+    p2Head: '#ea580c',
+    food: '#60a5fa',
+    text: '#e6edf6',
+    danger: '#ef4444',
+  };
+
+  const baseTickMs = 110; // velocidad base
+  const speedUpEvery = 4; // cada N comidas totales
+  const speedUpFactor = 0.93; // multiplicador
+  const minTickMs = 55;
+
+  // ===== UI =====
+  const $scoreP = document.getElementById('scoreP');
+  const $scoreC = document.getElementById('scoreC');
+  const $spd = document.getElementById('spd');
+  const $status = document.getElementById('status');
+  const $btnStart = document.getElementById('btnStart');
+  const $btnPause = document.getElementById('btnPause');
+  const $btnRestart = document.getElementById('btnRestart');
+
+  // ===== Game State =====
+  const DIRS = {
+    U: {x:0, y:-1},
+    D: {x:0, y:1},
+    L: {x:-1, y:0},
+    R: {x:1, y:0},
+  };
+
+  const opposite = (d) => ({U:'D', D:'U', L:'R', R:'L'}[d]);
+
+  let running = false;
+  let paused = false;
+  let tickMs = baseTickMs;
+  let loopHandle = null;
+
+  let player, cpu, food;
+  let scoreP = 0, scoreC = 0, foodsEatenTotal = 0;
+
+  function randInt(n){ return Math.floor(Math.random()*n); }
+  function same(a,b){ return a.x===b.x && a.y===b.y; }
+  function inBounds(p){ return p.x>=0 && p.x<COLS && p.y>=0 && p.y<ROWS; }
+  function key(p){ return `${p.x},${p.y}`; }
+
+  function makeSnake(start, dir, len){
+    const body = [];
+    for(let i=0;i<len;i++) body.push({x:start.x - dir.x*i, y:start.y - dir.y*i});
+    return { body, dirKey: dirKeyFromVec(dir), pendingDirKey: null, grow: 0 };
+  }
+
+  function dirKeyFromVec(v){
+    if(v.x===0 && v.y===-1) return 'U';
+    if(v.x===0 && v.y===1) return 'D';
+    if(v.x===-1 && v.y===0) return 'L';
+    return 'R';
+  }
+
+  function vecFromDirKey(k){ return DIRS[k]; }
+
+  function reset(){
+    scoreP = 0; scoreC = 0; foodsEatenTotal = 0;
+    tickMs = baseTickMs;
+
+    player = makeSnake({x: Math.floor(COLS*0.25), y: Math.floor(ROWS*0.5)}, {x:1,y:0}, 5);
+    cpu    = makeSnake({x: Math.floor(COLS*0.75), y: Math.floor(ROWS*0.5)}, {x:-1,y:0}, 5);
+
+    // Evita overlap inicial
+    spawnFood();
+
+    updateUI();
+    setStatus('Listo. Usa WASD o flechas. Presiona Iniciar.', 'ok');
+    draw();
+  }
+
+  function setStatus(msg, tone='ok'){
+    const color = tone==='danger' ? 'var(--danger)' : 'var(--text)';
+    $status.innerHTML = `<b style="color:${color}">${tone==='danger'?'Atención: ':''}</b>${msg}`;
+  }
+
+  function updateUI(){
+    $scoreP.textContent = scoreP;
+    $scoreC.textContent = scoreC;
+    const mult = (baseTickMs / tickMs);
+    $spd.textContent = `${mult.toFixed(2)}×`;
+  }
+
+  function occupiedSet(excludeTailMoves=false){
+    // Conjunto de casillas ocupadas por ambas serpientes.
+    // excludeTailMoves=true: ignora las colas que se moverán si no crecen (útil para pathfinding).
+    const set = new Set();
+    const addBody = (s) => {
+      const lastIndex = s.body.length - 1;
+      for(let i=0;i<s.body.length;i++){
+        if(excludeTailMoves && i===lastIndex && s.grow===0) continue;
+        set.add(key(s.body[i]));
+      }
+    };
+    addBody(player);
+    addBody(cpu);
+    return set;
+  }
+
+  function spawnFood(){
+    const occ = occupiedSet(false);
+    let tries = 0;
+    while(tries++ < 2000){
+      const p = {x: randInt(COLS), y: randInt(ROWS)};
+      if(!occ.has(key(p))){ food = p; return; }
+    }
+    // fallback: si está todo lleno (muy raro), deja donde sea
+    food = {x:0, y:0};
+  }
+
+  function stepHead(s, dirKey){
+    const v = vecFromDirKey(dirKey);
+    const h = s.body[0];
+    return {x: h.x + v.x, y: h.y + v.y};
+  }
+
+  function willHitSelf(newBody){
+    const headK = key(newBody[0]);
+    for(let i=1;i<newBody.length;i++) if(key(newBody[i])===headK) return true;
+    return false;
+  }
+
+  function headHitsOther(newHead, otherBody){
+    const k = key(newHead);
+    for(const seg of otherBody) if(key(seg)===k) return true;
+    return false;
+  }
+
+  // ===== CPU AI (BFS hacia la comida) =====
+  function bfsNextDir(){
+    const start = cpu.body[0];
+    const goal = food;
+
+    // Obstáculos: ambas serpientes, pero ignoramos cola que se moverá (si no crece)
+    const blocked = occupiedSet(true);
+    // Permitimos estar sobre su propia cabeza
+    blocked.delete(key(start));
+
+    const q = [];
+    const cameFrom = new Map();
+    const startK = key(start);
+    q.push(start);
+    cameFrom.set(startK, null);
+
+    const neighbors = (p) => [
+      {x:p.x, y:p.y-1, d:'U'},
+      {x:p.x, y:p.y+1, d:'D'},
+      {x:p.x-1, y:p.y, d:'L'},
+      {x:p.x+1, y:p.y, d:'R'},
+    ];
+
+    while(q.length){
+      const cur = q.shift();
+      if(same(cur, goal)) break;
+      for(const n of neighbors(cur)){
+        if(!inBounds(n)) continue;
+        const nk = key(n);
+        if(blocked.has(nk)) continue;
+        if(cameFrom.has(nk)) continue;
+        cameFrom.set(nk, {prev:key(cur), dir:n.d});
+        q.push({x:n.x, y:n.y});
+      }
+    }
+
+    const goalK = key(goal);
+    if(!cameFrom.has(goalK)) return null; // no path
+
+    // Retrocede desde la meta al inicio para obtener el primer movimiento
+    let curK = goalK;
+    let step = cameFrom.get(curK);
+    while(step && step.prev !== startK){
+      curK = step.prev;
+      step = cameFrom.get(curK);
+    }
+    return step ? step.dir : null;
+  }
+
+  function cpuChooseDir(){
+    const current = cpu.dirKey;
+    const banned = opposite(current);
+
+    // 1) intentar BFS a la comida
+    let candidate = bfsNextDir();
+    if(candidate && candidate !== banned && isSafeMove(cpu, candidate)) return candidate;
+
+    // 2) si BFS no sirve, heurística: reducir distancia Manhattan evitando choques
+    const dirs = ['U','D','L','R']
+      .filter(d => d !== banned)
+      .map(d => ({d, score: manhattan(stepHead(cpu,d), food)}))
+      .sort((a,b)=> a.score - b.score);
+
+    for(const {d} of dirs) if(isSafeMove(cpu, d)) return d;
+
+    // 3) cualquier movimiento (aunque pierda) para terminar
+    for(const d of ['U','D','L','R']) if(d !== banned) return d;
+    return current;
+  }
+
+  function manhattan(a,b){ return Math.abs(a.x-b.x)+Math.abs(a.y-b.y); }
+
+  function isSafeMove(s, dirKey){
+    const nh = stepHead(s, dirKey);
+    if(!inBounds(nh)) return false;
+
+    // Ojo: para seguridad, consideramos ocupación futura aproximada
+    const occ = occupiedSet(true);
+    // permitimos moverse a su propia cola si se mueve
+    const tail = s.body[s.body.length-1];
+    if(s.grow===0) occ.delete(key(tail));
+
+    return !occ.has(key(nh));
+  }
+
+  // ===== Input =====
+  const keyToDir = {
+    ArrowUp: 'U', ArrowDown:'D', ArrowLeft:'L', ArrowRight:'R',
+    w:'U', s:'D', a:'L', d:'R',
+    W:'U', S:'D', A:'L', D:'R',
+  };
+
+  window.addEventListener('keydown', (e) => {
+    const dk = keyToDir[e.key];
+    if(!dk) return;
+    e.preventDefault();
+    if(!running) return;
+
+    const banned = opposite(player.dirKey);
+    if(dk === banned) return;
+    player.pendingDirKey = dk;
+  }, {passive:false});
+
+  // ===== Game Loop =====
+  function tick(){
+    if(!running || paused) return;
+
+    // aplica pending dirección del jugador
+    if(player.pendingDirKey){
+      player.dirKey = player.pendingDirKey;
+      player.pendingDirKey = null;
+    }
+
+    // cpu decide
+    cpu.dirKey = cpuChooseDir();
+
+    // calcula nuevas cabezas
+    const nextP = stepHead(player, player.dirKey);
+    const nextC = stepHead(cpu, cpu.dirKey);
+
+    // comer
+    const pEats = same(nextP, food);
+    const cEats = same(nextC, food);
+
+    // construir nuevos cuerpos
+    const newP = [nextP, ...player.body];
+    const newC = [nextC, ...cpu.body];
+
+    if(pEats) player.grow += 1;
+    if(cEats) cpu.grow += 1;
+
+    // recorte de cola si no crece
+    if(player.grow>0){ player.grow--; }
+    else { newP.pop(); }
+
+    if(cpu.grow>0){ cpu.grow--; }
+    else { newC.pop(); }
+
+    // detecta colisiones
+    let pDead = false, cDead = false;
+
+    // paredes
+    if(!inBounds(nextP)) pDead = true;
+    if(!inBounds(nextC)) cDead = true;
+
+    // auto-choque
+    if(!pDead && willHitSelf(newP)) pDead = true;
+    if(!cDead && willHitSelf(newC)) cDead = true;
+
+    // choque entre serpientes (cabeza toca cuerpo del otro)
+    if(!pDead && headHitsOther(nextP, newC)) pDead = true;
+    if(!cDead && headHitsOther(nextC, newP)) cDead = true;
+
+    // choque cabeza con cabeza (misma casilla)
+    if(same(nextP, nextC)) { pDead = true; cDead = true; }
+
+    // aplicar
+    player.body = newP;
+    cpu.body = newC;
+
+    // actualiza puntajes / comida
+    if(pEats && !pDead){
+      scoreP += 1;
+      foodsEatenTotal += 1;
+    }
+    if(cEats && !cDead){
+      scoreC += 1;
+      foodsEatenTotal += 1;
+    }
+
+    if((pEats || cEats) && !(pDead || cDead)){
+      spawnFood();
+      if(foodsEatenTotal % speedUpEvery === 0){
+        tickMs = Math.max(minTickMs, Math.floor(tickMs * speedUpFactor));
+        restartInterval();
+      }
+    }
+
+    updateUI();
+    draw();
+
+    if(pDead || cDead){
+      running = false;
+      clearInterval(loopHandle);
+      loopHandle = null;
+      if(pDead && cDead) setStatus('Empate: ambos chocaron.', 'danger');
+      else if(pDead) setStatus('Perdiste: tu serpiente tocó pared/cola o a la CPU.', 'danger');
+      else setStatus('Ganaste: la CPU chocó con pared/cola o contigo.', 'danger');
+    }
+  }
+
+  function restartInterval(){
+    if(loopHandle) clearInterval(loopHandle);
+    loopHandle = setInterval(tick, tickMs);
+  }
+
+  // ===== Render =====
+  function draw(){
+    // fondo
+    ctx.fillStyle = COLORS.bg;
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+
+    // grid suave
+    ctx.strokeStyle = COLORS.grid;
+    ctx.lineWidth = 1;
+    for(let x=0; x<=COLS; x++){
+      ctx.beginPath();
+      ctx.moveTo(x*CELL + .5, 0);
+      ctx.lineTo(x*CELL + .5, canvas.height);
+      ctx.stroke();
+    }
+    for(let y=0; y<=ROWS; y++){
+      ctx.beginPath();
+      ctx.moveTo(0, y*CELL + .5);
+      ctx.lineTo(canvas.width, y*CELL + .5);
+      ctx.stroke();
+    }
+
+    // comida
+    drawCell(food, COLORS.food, true);
+
+    // serpientes
+    drawSnake(player.body, COLORS.p1, COLORS.p1Head);
+    drawSnake(cpu.body, COLORS.p2, COLORS.p2Head);
+
+    // overlay pausa
+    if(paused && running){
+      ctx.fillStyle = 'rgba(0,0,0,.35)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = COLORS.text;
+      ctx.font = '700 28px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Pausa', canvas.width/2, canvas.height/2);
+    }
+  }
+
+  function drawCell(p, color, round=false){
+    const x = p.x*CELL, y = p.y*CELL;
+    const pad = 2;
+    const r = round ? 8 : 6;
+    ctx.fillStyle = color;
+    roundedRect(x+pad, y+pad, CELL-pad*2, CELL-pad*2, r);
+    ctx.fill();
+  }
+
+  function drawSnake(body, color, headColor){
+    for(let i=body.length-1;i>=0;i--){
+      drawCell(body[i], i===0 ? headColor : color, i===0);
+    }
+  }
+
+  function roundedRect(x,y,w,h,r){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr,y);
+    ctx.arcTo(x+w,y,x+w,y+h,rr);
+    ctx.arcTo(x+w,y+h,x,y+h,rr);
+    ctx.arcTo(x,y+h,x,y,rr);
+    ctx.arcTo(x,y,x+w,y,rr);
+    ctx.closePath();
+  }
+
+  // ===== Buttons =====
+  $btnStart.addEventListener('click', () => {
+    if(running) return;
+    running = true; paused = false;
+    setStatus('Jugando. ¡Suerte!', 'ok');
+    restartInterval();
+  });
+
+  $btnPause.addEventListener('click', () => {
+    if(!running) return;
+    paused = !paused;
+    setStatus(paused ? 'En pausa. Presiona Pausa para continuar.' : 'Jugando.', 'ok');
+    draw();
+  });
+
+  $btnRestart.addEventListener('click', () => {
+    running = false; paused = false;
+    if(loopHandle) clearInterval(loopHandle);
+    loopHandle = null;
+    reset();
+  });
+
+  // ===== Init =====
+  reset();
+})();
+</script>
+</body>
+</html>
+
