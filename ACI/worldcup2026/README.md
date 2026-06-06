@@ -78,12 +78,12 @@ http://$CN.westus2.azurecontainer.io:5000
 ```
 
 
-# To obtain the url:
+### To obtain the url:
 ```
 az container show --resource-group $RG --name $CN --query "ipAddress.fqdn"
 ```
 
-# Cleanup to avoid charges:
+### Cleanup to avoid charges:
 ```
 az group delete -g $RG --yes
 ```
