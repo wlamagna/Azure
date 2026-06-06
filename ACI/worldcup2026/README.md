@@ -33,49 +33,49 @@ az cosmosdb create -n "$COSMOSDB" \
 --default-consistency-level "Session"
 ```
 
-## Create the Azure Container Registry we will use to store the image and also to build the Dockerfile
-## In Access keys > Admin user (enable) and copy the password (you will need it later)
+### Create the Azure Container Registry we will use to store the image and also to build the Dockerfile
+### In Access keys > Admin user (enable) and copy the password (you will need it later)
 ```
 az acr create --resource-group $RG --name acr2026 --sku Basic
 ```
-## Prepare Key Vault
-# Time to set the key for the cosmos DB into the keyvault.
+### Prepare Key Vault
+#### Time to set the key for the cosmos DB into the keyvault.
 ```
 az keyvault create --name "$KVNAME" \
 --resource-gropup $RG --sku "standard"
 ```
-## Put in the keyvault the secret for the CosmosDb: cosmosdb and the secret
+### Put in the keyvault the secret for the CosmosDb: cosmosdb and the secret
 is from previously when you created the Resource.
 
 
-## Load the data into cosmos db
-# This step is to populate date into the Cosmos DB, we are loading the players from the world cup 2026
+### Load the data into cosmos db
+#### This step is to populate date into the Cosmos DB, we are loading the players from the world cup 2026
+```
 ./cosmos_load.py
-# This tool is to test that it is working:
+```
+### This tool is to test that it is working:
+```
 ./cosmos_read.py
-
-
-# Create the Docker image (from azure CLI) - no need to install anything more
+```
+### Create the Docker image (from azure CLI) - no need to install anything more
 ```
 az acr build --image $ACR.azurecr.io/$CN:v1` \
 --registry "$ACR" --file Dockerfile .
 ```
-# It will ask for a user and password, it is the ACR name and the password from the ACR.
+### It will ask for a user and password, it is the ACR name and the password from the ACR.
 
-
-# Now create the instance out of the image, and with an identity.
+### Now create the instance out of the image, and with an identity.
+```
 az container create --resource-group $RG --name $CN \
 --image $ACR.azurecr.io/$CN:v1 \
 --dns-name-label $CN --ports 5000 --os-type linux --memory 2 --cpu 1 \
 --locaion westus2 --assign-identity
-
-# It uses a system assigned identity, we need to give KV the permission to this identity
-# to read secrets.
-
-
-# Visit the url and the API !
+```
+### It uses a system assigned identity, we need to give KV the permission to this identity to read secrets.
+### Visit the url and the API !
+```
 http://$CN.westus2.azurecontainer.io:5000
-
+```
 
 
 # To obtain the url:
