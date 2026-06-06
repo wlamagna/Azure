@@ -2,18 +2,18 @@
 
 ## It is Saturday, no wind outside, then it is a good moment to practice some of the skills acquired on the az-305 and az-104 and play today with some continers.
 
-# I recommend setting a python virtual environment, you can just use the cloudshell.  But it is not really required, only some tip.
+### I recommend setting a python virtual environment, you can just use the cloudshell.  But it is not really required, only some tip.
 ```
 python -m venv .venv
 ```
-## Installing some required packages
+### Installing some required packages
 ```
 pip install azure-keyvault
 pip install azure-cosmos
 pip install azure-identity
 ```
 
-# Setting some variables
+### Setting some variables
 ```
 CN="playerone"
 RG="test01"
@@ -23,7 +23,7 @@ KVNAME="kvcup2026"
 ```
 
 
-## Create the cosmos DB, then obtain the Keys and store it in the KV (created next)
+### Create the cosmos DB, then obtain the Keys and store it in the KV (created next)
 ```
 az group create -g $RG --location westus
 
