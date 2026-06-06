@@ -6,7 +6,6 @@
 
 ![Topology](diagram.png)
 
-### It is Saturday, no wind outside, then it is a good moment to practice some of the skills acquired on the az-305 and az-104 and play today with some continers.
 
 #### I recommend setting a python virtual environment, you can just use the cloudshell.  But it is not really required, only some tip.
 ```
