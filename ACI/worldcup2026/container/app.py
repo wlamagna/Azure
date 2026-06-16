@@ -8,7 +8,7 @@ import sys
 from azure.keyvault.secrets import SecretClient
 from azure.identity import DefaultAzureCredential
 
-VAULT_URL = "https://kvcup2026.vault.azure.net/"
+VAULT_URL = "https://kvwcup2026.vault.azure.net/"
 COSMOS_URL = "https://test01account.documents.azure.com:443"
 SECRET_TO_FETCH = "cosmosdb"
 CONTAINER_NAME = 'players'

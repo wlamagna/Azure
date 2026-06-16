@@ -44,6 +44,7 @@ az acr create --resource-group $RG --name $ACR --sku Basic
 ```
 ### Prepare Key Vault
 #### Set the key for the cosmos DB into the keyvault.
+#### And give the managed entity access to the keyvault to read the secret
 ```
 az keyvault create --name "$KVNAME" \
 --resource-gropup $RG --sku "standard"
@@ -74,6 +75,7 @@ az container create --resource-group $RG --name $CN \
 --locaion westus2 --assign-identity
 ```
 #### It uses a system assigned identity, we need to give KV the permission to this identity to read secrets.
+#### Finally:
 #### Visit the url and the API !
 ```
 http://$CN.westus2.azurecontainer.io:5000
