@@ -49,6 +49,12 @@ az provider register --namespace Microsoft.DocumentDB
 ```
 az acr create --resource-group $RG --name $ACR --sku Basic
 ```
+
+#### For this you  will need to have the Microsoft.ContainerRegistry namespace registered
+```
+az provider register --namespace Microsoft.ContainerRegistry
+```
+
 ### Prepare Key Vault
 #### Set the key for the cosmos DB into the keyvault.
 #### And give the managed entity access to the keyvault to read the secret
