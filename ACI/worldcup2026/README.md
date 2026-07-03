@@ -25,6 +25,7 @@ RG="test01"
 COSMOSDB="test01account"
 ACR="acrcordoba"
 KVNAME="kvwc2026"
+EMAIL="yourmail@hotmail.com"
 SUBID="you subscription id"
 
 az group create -g $RG --location westus
@@ -67,13 +68,19 @@ az provider register --namespace Microsoft.KeyVault
 ```
 #### Put in the keyvault the secret for the CosmosDb: cosmosdb and the secret (from previously when you created the Resource)
 ```
-K=`az cosmosdb keys list --name $COSMOSDB -g $RG | jq .primaryMasterKey` | sed 's/"//g'
+K=`az cosmosdb keys list --name $COSMOSDB -g $RG | jq .primaryMasterKey | sed 's/"//g'`
 ```
 #### User can have RBAC IAM Key Vault Secrets Officer
 ```
+
+az keyvault update \
+    --name "$KVNAME" \
+    --resource-group "$RG" \
+    --enable-rbac-authorization true
+
 az role assignment create \
     --role "Key Vault Secrets Officer" \
-    --assignee "yourmail" \
+    --assignee "$EMAIL" \
     --scope "/subscriptions/$SUBID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KVNAME"
 
 az keyvault secret set --vault-name "$KVNAME" --name "cosmosdb" --value "$K"
