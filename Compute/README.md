@@ -5,3 +5,7 @@ az deployment group create --resource-group $RG --name newdeploy2025 \
 --parameters @arms/newlinuxvm.params
 
 
+wget https://raw.githubusercontent.com/wlamagna/Azure/refs/heads/main/Compute/arms/newlinuxvm.params
+
+wget https://raw.githubusercontent.com/wlamagna/Azure/refs/heads/main/Compute/arms/newlinuxvm.arm
+
