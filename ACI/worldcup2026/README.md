@@ -97,8 +97,7 @@ az keyvault secret set --vault-name "$KVNAME" --name "cosmosdb" --value "$K"
 ```
 #### Create the Docker image (from azure CLI) - no need to install anything more.  The Dockerfile is in the directory [Dockerfile](https://github.com/wlamagna/Azure/tree/main/ACI/worldcup2026/container)
 ```
-az acr build --image $ACR.azurecr.io/$CN:v1` \
---registry "$ACR" --file Dockerfile .
+az acr build --image $ACR.azurecr.io/$CN:v1 --registry "$ACR" --file Dockerfile .
 ```
 #### It will ask for a user and password, it is the ACR name and the password from the ACR.
 #### Now create the instance out of the image, and with an identity.
