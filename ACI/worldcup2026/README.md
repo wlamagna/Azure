@@ -62,8 +62,13 @@ az provider register --namespace Microsoft.ContainerRegistry
 az keyvault create --name "$KVNAME" \
 --resource-group $RG --sku "standard"
 ```
-#### Put in the keyvault the secret for the CosmosDb: cosmosdb and the secret (from previously when you created the Resource)
 
+#### For this you  will need to have the Microsoft.KeyVault namespace registered
+```
+az provider register --namespace Microsoft.KeyVault
+```
+#### Put in the keyvault the secret for the CosmosDb: cosmosdb and the secret (from previously when you created the Resource)
+#### User can have RBAC IAM Key Vault Secrets Officer
 
 ### Load the data into cosmos db
 #### This step is to populate date into the Cosmos DB, we are loading the players from the world cup 2026
