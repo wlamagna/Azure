@@ -37,6 +37,13 @@ az cosmosdb create -n "$COSMOSDB" \
 --default-consistency-level "Session"
 ```
 
+#### For this you  will need to have the Microsoft.DocumentDB namespace registered
+```
+az provider register --namespace Microsoft.DocumentDB
+```
+
+
+
 #### Create the Azure Container Registry we will use to store the image and also to build the Dockerfile
 #### In Access keys > Admin user (enable) and copy the password (you will need it later)
 ```
