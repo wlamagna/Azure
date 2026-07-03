@@ -1,0 +1,17 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "projectName": {
+            "value": "vm1"
+        },
+        "adminUsername": {
+            "value": "walter"
+        },
+        "adminPublicKey": {
+            "value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD0iBmKebwEWKF62tGyMwm/OQbiG3B7baQCUe0lXqw9Sd+ARIKzHZWCJeddaBTl6gr8lMJUzJjR30bFDWPv3iTWyYgyKlEOK1zdXksJtSIv/QwLWXHOXUaa9mOHQmlYeGOujnW4GLFYL8c97W4PG57JyG0bz0NwFYJdjXi+BiIJDK9M7YE3tN0EfgeAKovFvYNlPGDvPj06MGFzJnz9nncTJ+eTgIYNUZxonfPey/NassAOrLGO+cMKk1vFfOZ0qG7Nij07VYC7T6TPvNnYTz1NEqya+7RLz91teGcRi0chBLnPt67EkSFtR23W2WmrmHiNbT5MwfTLMwy744sgv4GJ"
+        }
+    }
+}
+
+
