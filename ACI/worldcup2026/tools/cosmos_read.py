@@ -1,4 +1,4 @@
-#!/home/walter/cosmos/myenv/bin/python
+#!.venv/bin/python
 from azure.cosmos import CosmosClient
 import os
 import json

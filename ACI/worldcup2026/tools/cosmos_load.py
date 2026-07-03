@@ -1,4 +1,4 @@
-#!/home/walter/docker/playerone/.venv/bin/python
+#!.venv/bin/python
 import sys
 import os
 from azure.keyvault.secrets import SecretClient
