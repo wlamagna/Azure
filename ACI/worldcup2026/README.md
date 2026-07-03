@@ -60,7 +60,7 @@ az provider register --namespace Microsoft.ContainerRegistry
 #### And give the managed entity access to the keyvault to read the secret
 ```
 az keyvault create --name "$KVNAME" \
---resource-gropup $RG --sku "standard"
+--resource-group $RG --sku "standard"
 ```
 #### Put in the keyvault the secret for the CosmosDb: cosmosdb and the secret (from previously when you created the Resource)
 
