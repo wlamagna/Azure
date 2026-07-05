@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "virtualNetworks_myVNet_name": {
-            "defaultValue": "myVNet2",
+            "defaultValue": "Prod-VNet",
             "type": "String"
         }
     },
