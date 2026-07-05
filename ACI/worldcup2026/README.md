@@ -1,4 +1,4 @@
-## This project is an Azure Container instance with an API that returns randomly a football player name and nationality and the football players are all the players of the WorldCup 2026.  It was great to make more experience and face real problems, look up to where i can go with my subscription.
+### This project is an Azure Container instance with an API that returns randomly a football player name and nationality and the football players are all the players of the WorldCup 2026.  The purpose is to experiment and face real problems, look up to where i can go with my subscription.
 
 * The list of football players and nationality was created also by me, i could not find a dataset in the web so i created it from scratch [WorldCup2026Players](tools/players.csv)
 
@@ -7,28 +7,22 @@
 ![Topology](diagram.png)
 
 
-#### I recommend setting a python virtual environment, you can just use the cloudshell.  But it is not really required, only some tip.
-```
-python -m venv .venv
-```
-#### Installing some required packages
-```
-pip install azure-keyvault
-pip install azure-cosmos
-pip install azure-identity
-```
 
 #### Setting some variables
 ```
-CN="playerone"
-RG="test01"
-COSMOSDB="test01account"
-ACR="acrcordoba"
+RGNAME="test01"
+REGION="eastus"
+VMNAME="vm01"
+CONTAINERNAME="playerone"
+COSMOSDBNAME="test01account"
+ACREGISTRY="acrcordoba"
 KVNAME="kvwc2026"
-EMAIL="yourmail@hotmail.com"
-SUBID="you subscription id"
+EMAIL="...#EXT#@SOMETHING.onmicrosoft.com"
+SUBID="YOUR_SUBSCRIPTION_ID"
 
-az group create -g $RG --location westus
+echo -n "Creating Resource Group "
+az group create -g $RGNAME --location $REGION -o none
+if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
 ```
 
 #### Create the cosmos DB, then obtain the Keys and store it in the KV (created next)
@@ -50,9 +44,11 @@ az provider register --namespace Microsoft.DocumentDB
 az acr create --resource-group $RG --name $ACR --sku Basic
 ```
 
-#### For this you  will need to have the Microsoft.ContainerRegistry namespace registered
+#### For this you will need to have the following namespaces registered
 ```
 az provider register --namespace Microsoft.ContainerRegistry
+az provider register --namespace Microsoft.KeyVault
+az provider register --namespace Microsoft.ContainerInstance
 ```
 
 ### Prepare Key Vault
@@ -62,10 +58,7 @@ az provider register --namespace Microsoft.ContainerRegistry
 az keyvault create --name "$KVNAME" --resource-group $RG --sku "standard"
 ```
 
-#### For this you  will need to have the Microsoft.KeyVault namespace registered
-```
-az provider register --namespace Microsoft.KeyVault
-```
+
 #### Put in the keyvault the secret for the CosmosDb: cosmosdb and the secret (from previously when you created the Resource)
 ```
 K=`az cosmosdb keys list --name $COSMOSDB -g $RG | jq .primaryMasterKey | sed 's/"//g'`
@@ -95,7 +88,7 @@ az keyvault secret set --vault-name "$KVNAME" --name "cosmosdb" --value "$K"
 ```
 ./cosmos_read.py
 ```
-#### Create the Docker image (from azure CLI) - no need to install anything more.  The Dockerfile is in the directory [Dockerfile](https://github.com/wlamagna/Azure/tree/main/ACI/worldcup2026/container)
+#### Create the Docker image (from azure CLI) - This only works in a nonfree / nonstudent account which is not my case.  What i will do is create quickly a Linux VM with Docker and deploy from there.  If this command works, then no need to install anything more.  The Dockerfile is in the directory [Dockerfile](https://github.com/wlamagna/Azure/tree/main/ACI/worldcup2026/container)
 ```
 az acr build --image $ACR.azurecr.io/$CN:v1 --registry "$ACR" --file Dockerfile .
 ```
@@ -114,7 +107,6 @@ az container create --resource-group $RG --name $CN \
 http://$CN.westus2.azurecontainer.io:5000
 ```
 
-#### To obtain the url:
 ```
 az container show --resource-group $RG --name $CN --query "ipAddress.fqdn"
 ```
@@ -122,4 +114,17 @@ az container show --resource-group $RG --name $CN --query "ipAddress.fqdn"
 #### Cleanup to avoid charges:
 ```
 az group delete -g $RG --yes
+```
+
+
+
+#### I recommend setting a python virtual environment, you can just use the cloudshell.  But it is not really required, only some tip.
+```
+python -m venv .venv
+```
+#### Installing some required packages
+```
+pip install azure-keyvault
+pip install azure-cosmos
+pip install azure-identity
 ```
