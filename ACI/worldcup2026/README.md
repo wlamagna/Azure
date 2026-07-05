@@ -49,6 +49,8 @@ az acr create --resource-group $RGNAME --name $ACREGISTRY --sku Basic -o none 2>
 if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
 ```
 
+![Topology](ACRname.png)
+
 ### Step 4. Prepare Key Vault
 #### Set the key for the cosmos DB into the keyvault.
 #### And give the managed entity access to the keyvault to read the secret
