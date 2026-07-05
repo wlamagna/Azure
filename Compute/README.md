@@ -1,13 +1,14 @@
-#### These instructions tell how to set up quickly a Linux VM with Docker, create the image and upload it to the Azure Container Registry.
-#### The initial steps are [here](https://github.com/wlamagna/Azure/tree/main/ACI/worldcup2026)
+#### These instructions tell how to set up quickly a Linux VM with Docker, create the image and upload it to the Azure Container Registry.  The initial steps are [here](https://github.com/wlamagna/Azure/tree/main/ACI/worldcup2026)
 ```
 echo -n "Creating the VM with Docker "
-az vm create --resource-group $RGNAME --name $VMNAME --image Canonical:0001-com-ubuntu-server-jammy:22_04-lts-gen2:latest \
---admin-username azureuser --generate-ssh-keys --custom-data cloud-init.txt --size Standard_D2s_v7 -o none 2>/dev/null
+az vm create --resource-group $RGNAME --name $VMNAME \
+--image Canonical:0001-com-ubuntu-server-jammy:22_04-lts-gen2:latest \
+--admin-username azureuser --generate-ssh-keys \
+--custom-data cloud-init.txt --size Standard_D2s_v7 -o none 2>/dev/null
 if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
 ```
 
-### Get your Public IP
+#### Get your Public IP
 ```
 az vm show --resource-group $RGNAME --name $VMNAME  --show-details \
 --query publicIps --output tsv
@@ -26,17 +27,16 @@ docker login acrcordoba.azurecr.io --username acrcordoba --password "$ACRPASSWOR
 docker push acrcordoba.azurecr.io/playerone:v1
 ```
 
-## Exit the VM back to the Azure CLI and create the instance out of the image:
+#### Exit the VM back to the Azure CLI and create the instance out of the image:
 ```
 az acr repository list -n $ACREGISTRY -o table
 ```
 
-#### Completed these steps, you can continue Step 5. [here](https://github.com/wlamagna/Azure/tree/main/ACI/worldcup2026)
+#### Completed these steps, you can continue Step 6. [here](https://github.com/wlamagna/Azure/tree/main/ACI/worldcup2026)
 
 #### ---------------
-#### These steps are work in progress. Creating the VM with Arm templates
-### The strategy must be the following:
-## 1. Create the Vnet because:
+#### These steps are work in progress. Creating the VM with Arm templates.  The strategy must be the following:
+### 1. Create the Vnet because:
 ```
 Vnet: Prod-VNet
 '-- Subnect: default
