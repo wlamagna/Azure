@@ -112,6 +112,11 @@ az container create --resource-group $RGNAME --name newcontainer \
 --ports 5000 --os-type linux --memory 2 --cpu 1 --location $REGION --registry-username acrcordoba \
 --registry-password "$ACR_KEY" \
 --assign-identity --dns-name-label $CONTAINERNAME-$RANDOM
+
+# Alternative with Bicep file:
+az deployment group create \
+--resource-group $RGNAME \
+--template-file templates/bicep/containerimage.bicep
 ```
 #### It uses a system assigned identity, we need to give KV the permission to this identity to read secrets.
 #### Finally:
