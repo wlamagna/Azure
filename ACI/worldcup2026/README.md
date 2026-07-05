@@ -28,27 +28,23 @@ if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
 #### Create the cosmos DB, then obtain the Keys and store it in the KV (created next)
 ```
 az cosmosdb create -n "$COSMOSDB" \
--g $RG --enable-free-tier true \
+-g $RGNAME --enable-free-tier true \
 --locations regionName="West US" \
 --default-consistency-level "Session"
 ```
 
-#### For this you  will need to have the Microsoft.DocumentDB namespace registered
+#### For this you will need to have the following namespaces registered
 ```
 az provider register --namespace Microsoft.DocumentDB
+az provider register --namespace Microsoft.ContainerRegistry
+az provider register --namespace Microsoft.KeyVault
+az provider register --namespace Microsoft.ContainerInstance
 ```
 
 #### Create the Azure Container Registry we will use to store the image and also to build the Dockerfile
 #### In Access keys > Admin user (enable) and copy the password (you will need it later)
 ```
 az acr create --resource-group $RG --name $ACR --sku Basic
-```
-
-#### For this you will need to have the following namespaces registered
-```
-az provider register --namespace Microsoft.ContainerRegistry
-az provider register --namespace Microsoft.KeyVault
-az provider register --namespace Microsoft.ContainerInstance
 ```
 
 ### Prepare Key Vault
@@ -65,7 +61,6 @@ K=`az cosmosdb keys list --name $COSMOSDB -g $RG | jq .primaryMasterKey | sed 's
 ```
 #### User can have RBAC IAM Key Vault Secrets Officer
 ```
-
 az keyvault update \
     --name "$KVNAME" \
     --resource-group "$RG" \
@@ -88,7 +83,12 @@ az keyvault secret set --vault-name "$KVNAME" --name "cosmosdb" --value "$K"
 ```
 ./cosmos_read.py
 ```
-#### Create the Docker image (from azure CLI) - This only works in a nonfree / nonstudent account which is not my case.  What i will do is create quickly a Linux VM with Docker and deploy from there.  If this command works, then no need to install anything more.  The Dockerfile is in the directory [Dockerfile](https://github.com/wlamagna/Azure/tree/main/ACI/worldcup2026/container)
+
+#### Create the Docker image (from azure CLI)
+#### Up to this point the instructions should be fine for an Azure Student Account, but the next step works for an upgraded account only.
+#### This only works in a NonStudent account.  Here is a link to an alternative solution where we deploy quickly a Linux VM with Docker
+#### and we create the Docker Image from there and upload it to the ACRegistry.
+#### Link to VM creation instructions: [Linux+Docker](https://github.com/wlamagna/Azure/tree/main/Compute)
 ```
 az acr build --image $ACR.azurecr.io/$CN:v1 --registry "$ACR" --file Dockerfile .
 ```
