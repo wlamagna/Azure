@@ -34,7 +34,7 @@ az group create -g $RG --location eastus
 az vm list-skus --location eastus --size Standard_D --all --output table
 
 az vm create \
-  --resource-group $RG \
+  --resource-group $RGNAME \
   --name vm01 \
   --image Canonical:0001-com-ubuntu-server-jammy:22_04-lts-gen2:latest \
   --admin-username azureuser \
@@ -45,26 +45,33 @@ az vm create \
 
 ### Get your Public IP
 ```
-az vm show \
-  --resource-group $RG \
-  --name vm01 \
-  --show-details \
-  --query publicIps \
-  --output tsv
+az vm show --resource-group $RGNAME --name $VMNAME  --show-details \
+--query publicIps --output tsv
 ssh azureuser@<YOUR_PUBLIC_IP>
 ```
 
+#### Inside the VM:
+```
+wget https://raw.githubusercontent.com/wlamagna/Azure/refs/heads/main/ACI/worldcup2026/container/Dockerfile
+wget https://raw.githubusercontent.com/wlamagna/Azure/refs/heads/main/ACI/worldcup2026/container/app.py
+wget https://raw.githubusercontent.com/wlamagna/Azure/refs/heads/main/ACI/worldcup2026/container/requirements.txt
+docker build -t playerone:v1 .
 
-apt-get -y update
-apt-get install ca-certificates curl gnupg
-install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-chmod a+r /etc/apt/keyrings/docker.asc
+docker tag playerone:v1 acrcordoba.azurecr.io/playerone:v1
+docker login acrcordoba.azurecr.io --username acrcordoba --password "$ACRPASSWORD"
+docker push acrcordoba.azurecr.io/playerone:v1
+```
 
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+## exit the VM
 
-apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-usermod -aG docker azureuser
+az acr repository list -n $ACREGISTRY -o table
+
+### Create the instance of the image
+az container create --resource-group $RGNAME --name newcontainer \
+--image $ACREGISTRY.azurecr.io/$CONTAINERNAME:v1 \
+--ports 5000 --os-type linux --memory 2 --cpu 1 --location $REGION --registry-username acrcordoba \
+--registry-password "8txHXSyoOUTN7UxB7zngm8LcEPB3k6O7JlouP5lVMMAW3sIjJEVeJQQJ99CGACYeBjFEqg7NAAACAZCR51dX" \
+--assign-identity --dns-name-label $CONTAINERNAME-$RANDOM
+
+
+8txHXSyoOUTN7UxB7zngm8LcEPB3k6O7JlouP5lVMMAW3sIjJEVeJQQJ99CGACYeBjFEqg7NAAACAZCR51dX
