@@ -99,10 +99,7 @@ pip install azure-identity
 ```
 
 #### Step 5. Create the Docker image (from azure CLI)
-#### Up to this point the instructions should be fine for an Azure Student Account, but the next step works for an upgraded account only.
-#### This only works in a NonStudent account.  Here is a link to an alternative solution where we deploy quickly a Linux VM with Docker
-#### and we create the Docker Image from there and upload it to the ACRegistry.
-#### Link to VM creation instructions: [Linux+Docker](https://github.com/wlamagna/Azure/tree/main/Compute)
+#### Up to this point the instructions should be fine for an Azure Student Account, but the next step works for an upgraded account only.  This only works in a NonStudent account.  Here is a link to an alternative solution where we deploy quickly a Linux VM with Docker and we create the Docker Image from there and upload it to the ACRegistry.  Link to VM creation instructions: [Linux+Docker](https://github.com/wlamagna/Azure/tree/main/Compute)
 ```
 az acr build --image $ACR.azurecr.io/$CN:v1 --registry "$ACR" --file Dockerfile .
 ```
