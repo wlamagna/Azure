@@ -8,7 +8,7 @@
 
 
 
-#### Setting some variables
+#### Step1. Setting some variables
 ```
 RGNAME="test01"
 REGION="eastus"
@@ -33,7 +33,7 @@ az provider register --namespace Microsoft.KeyVault
 az provider register --namespace Microsoft.ContainerInstance
 ```
 
-#### Create the cosmos DB, then obtain the Keys and store it in the KV (created next)
+#### Step2. Create the cosmos DB, then obtain the Keys and store it in the KV (created next)
 ```
 echo -n "Creating the cosmos DB "
 az cosmosdb create -n "$COSMOSDBNAME" -g $RGNAME --enable-free-tier true \
@@ -41,7 +41,7 @@ az cosmosdb create -n "$COSMOSDBNAME" -g $RGNAME --enable-free-tier true \
 if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
 ```
 
-#### Create the Azure Container Registry we will use to store the image and also to build the Dockerfile
+#### Step 3. Create the Azure Container Registry we will use to store the image and also to build the Dockerfile
 #### In Access keys > Admin user (enable) and copy the password (you will need it later)
 ```
 echo -n "Creating Azure Container Registry "
@@ -49,7 +49,7 @@ az acr create --resource-group $RGNAME --name $ACREGISTRY --sku Basic -o none 2>
 if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
 ```
 
-### Prepare Key Vault
+### Step 4. Prepare Key Vault
 #### Set the key for the cosmos DB into the keyvault.
 #### And give the managed entity access to the keyvault to read the secret
 ```
@@ -98,7 +98,7 @@ pip install azure-identity
 ./cosmos_read.py
 ```
 
-#### Create the Docker image (from azure CLI)
+#### Step 5. Create the Docker image (from azure CLI)
 #### Up to this point the instructions should be fine for an Azure Student Account, but the next step works for an upgraded account only.
 #### This only works in a NonStudent account.  Here is a link to an alternative solution where we deploy quickly a Linux VM with Docker
 #### and we create the Docker Image from there and upload it to the ACRegistry.
@@ -106,13 +106,14 @@ pip install azure-identity
 ```
 az acr build --image $ACR.azurecr.io/$CN:v1 --registry "$ACR" --file Dockerfile .
 ```
-#### It will ask for a user and password, it is the ACR name and the password from the ACR.
+#### Step 3. It will ask for a user and password, it is the ACR name and the password from the ACR.
 #### Now create the instance out of the image, and with an identity.
 ```
-az container create --resource-group $RG --name $CN \
---image $ACR.azurecr.io/$CN:v1 \
---dns-name-label $CN --ports 5000 --os-type linux --memory 2 --cpu 1 \
---locaion westus2 --assign-identity
+az container create --resource-group $RGNAME --name newcontainer \
+--image $ACREGISTRY.azurecr.io/$CONTAINERNAME:v1 \
+--ports 5000 --os-type linux --memory 2 --cpu 1 --location $REGION --registry-username acrcordoba \
+--registry-password "$ACR_KEY" \
+--assign-identity --dns-name-label $CONTAINERNAME-$RANDOM
 ```
 #### It uses a system assigned identity, we need to give KV the permission to this identity to read secrets.
 #### Finally:
