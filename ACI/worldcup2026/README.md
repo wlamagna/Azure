@@ -25,14 +25,6 @@ az group create -g $RGNAME --location $REGION -o none
 if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
 ```
 
-#### Create the cosmos DB, then obtain the Keys and store it in the KV (created next)
-```
-az cosmosdb create -n "$COSMOSDB" \
--g $RGNAME --enable-free-tier true \
---locations regionName="West US" \
---default-consistency-level "Session"
-```
-
 #### For this you will need to have the following namespaces registered
 ```
 az provider register --namespace Microsoft.DocumentDB
@@ -41,42 +33,64 @@ az provider register --namespace Microsoft.KeyVault
 az provider register --namespace Microsoft.ContainerInstance
 ```
 
+#### Create the cosmos DB, then obtain the Keys and store it in the KV (created next)
+```
+echo -n "Creating the cosmos DB "
+az cosmosdb create -n "$COSMOSDBNAME" -g $RGNAME --enable-free-tier true \
+--locations regionName="West US" --default-consistency-level "Session" -o none 2>/dev/null
+if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
+```
+
 #### Create the Azure Container Registry we will use to store the image and also to build the Dockerfile
 #### In Access keys > Admin user (enable) and copy the password (you will need it later)
 ```
-az acr create --resource-group $RG --name $ACR --sku Basic
+echo -n "Creating Azure Container Registry "
+az acr create --resource-group $RGNAME --name $ACREGISTRY --sku Basic -o none 2>/dev/null
+if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
 ```
 
 ### Prepare Key Vault
 #### Set the key for the cosmos DB into the keyvault.
 #### And give the managed entity access to the keyvault to read the secret
 ```
-az keyvault create --name "$KVNAME" --resource-group $RG --sku "standard"
-```
+echo -n "Creating Azure Key Vault "
+az keyvault create --name "$KVNAME" --resource-group $RGNAME --sku "standard" -o none 2>/dev/null
+if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
 
+echo -n "Enabling RBAC to Key Vault "
+az keyvault update --name "$KVNAME" --resource-group "$RGNAME" --enable-rbac-authorization true -o none 2>/dev/null
+if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
+```
 
 #### Put in the keyvault the secret for the CosmosDb: cosmosdb and the secret (from previously when you created the Resource)
 ```
-K=`az cosmosdb keys list --name $COSMOSDB -g $RG | jq .primaryMasterKey | sed 's/"//g'`
-```
-#### User can have RBAC IAM Key Vault Secrets Officer
-```
-az keyvault update \
-    --name "$KVNAME" \
-    --resource-group "$RG" \
-    --enable-rbac-authorization true
+echo -n "Assigning the role Key Vault Secrets Officer "
+az role assignment create --role "Key Vault Secrets Officer" --assignee "$EMAIL" \
+--scope "/subscriptions/$SUBID/resourceGroups/$RGNAME/providers/Microsoft.KeyVault/vaults/$KVNAME" -o none 2>/dev/null
+if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
 
-az role assignment create \
-    --role "Key Vault Secrets Officer" \
-    --assignee "$EMAIL" \
-    --scope "/subscriptions/$SUBID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KVNAME"
+KEY=`az cosmosdb keys list --name $COSMOSDBNAME -g $RGNAME | jq .primaryMasterKey | sed 's/"//g'`
 
-az keyvault secret set --vault-name "$KVNAME" --name "cosmosdb" --value "$K"
-
+echo -n "Setting secret to KeyVault "
+az keyvault secret set --vault-name "$KVNAME" --name "cosmosdb" --value "$KEY" -o none 2>/tmp/err
+if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
 ```
+
 ### Load the data into cosmos db
 #### This step is to populate date into the Cosmos DB, we are loading the players from the world cup 2026
+#### Download the cosmos_load.py, edit it and set the Key Vault name that you used
 ```
+echo "Download initialization scripts"
+wget https://raw.githubusercontent.com/wlamagna/Azure/refs/heads/main/ACI/worldcup2026/tools/cosmos_load.py
+wget https://raw.githubusercontent.com/wlamagna/Azure/refs/heads/main/ACI/worldcup2026/tools/cosmos_read.py
+wget https://raw.githubusercontent.com/wlamagna/Azure/refs/heads/main/ACI/worldcup2026/tools/players.csv
+chmod +x cosmos_load.py
+python -m venv .venv
+source .venv/bin/activate
+pip install azure-keyvault
+pip install azure-cosmos
+pip install azure-identity
+
 ./cosmos_load.py
 ```
 #### This tool is to test that it is working:
@@ -117,14 +131,3 @@ az group delete -g $RG --yes
 ```
 
 
-
-#### I recommend setting a python virtual environment, you can just use the cloudshell.  But it is not really required, only some tip.
-```
-python -m venv .venv
-```
-#### Installing some required packages
-```
-pip install azure-keyvault
-pip install azure-cosmos
-pip install azure-identity
-```
