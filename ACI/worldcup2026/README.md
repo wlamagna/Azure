@@ -103,8 +103,7 @@ pip install azure-identity
 ```
 az acr build --image $ACR.azurecr.io/$CN:v1 --registry "$ACR" --file Dockerfile .
 ```
-#### Step 3. It will ask for a user and password, it is the ACR name and the password from the ACR.
-#### Now create the instance out of the image, and with an identity.
+#### Step 6. It will ask for a user and password, it is the ACR name and the password from the ACR.  Now create the instance out of the image, and with an identity.
 ```
 az container create --resource-group $RGNAME --name newcontainer \
 --image $ACREGISTRY.azurecr.io/$CONTAINERNAME:v1 \
