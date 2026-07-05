@@ -37,6 +37,7 @@ resource containerGroups_newcontainer_name_resource 'Microsoft.ContainerInstance
       {
         server: 'acrcordoba.azurecr.io'
         username: 'acrcordoba'
+        password: 'puthereapassword'
       }
     ]
     ipAddress: {
