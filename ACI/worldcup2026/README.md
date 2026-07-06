@@ -126,12 +126,12 @@ http://$CN.westus2.azurecontainer.io:5000
 ```
 
 ```
-az container show --resource-group $RG --name $CN --query "ipAddress.fqdn"
+az container show --resource-group $RGNAME --name $CONTAINERNAME --query "ipAddress.fqdn"
 ```
 
 #### Cleanup to avoid charges:
 ```
-az group delete -g $RG --yes
+az group delete -g $RGNAME --yes
 ```
 
 
