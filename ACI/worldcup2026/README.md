@@ -31,6 +31,7 @@ az provider register --namespace Microsoft.DocumentDB
 az provider register --namespace Microsoft.ContainerRegistry
 az provider register --namespace Microsoft.KeyVault
 az provider register --namespace Microsoft.ContainerInstance
+az provider register --namespace Microsoft.AzureTerraform
 ```
 
 #### Step2. Create the cosmos DB, then obtain the Keys and store it in the KV (created next)
@@ -115,8 +116,7 @@ az container create --resource-group $RGNAME --name newcontainer \
 
 # Alternative with Bicep file:
 az deployment group create \
---resource-group $RGNAME \
---template-file templates/bicep/containerimage.bicep
+--resource-group $RGNAME --template-file templates/bicep/containerimage.bicep
 ```
 #### It uses a system assigned identity, we need to give KV the permission to this identity to read secrets.
 #### Finally:
