@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asteroid Dodger - Upgraded</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0a0a1a; /* Deep space dark blue */
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        #gameWrapper {
+            position: relative;
+            border: 2px solid #334;
+            box-shadow: 0 0 30px rgba(0, 150, 255, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        /* Top Status Bar */
+        #statusBar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border-bottom: 1px solid #445;
+            z-index: 10;
+        }
+        #statusText { color: #00d2ff; }
+        #scoreText { color: #ffcc00; }
+        
+        canvas {
+            background: linear-gradient(to bottom, #050510, #1a1a3a); /* Space gradient */
+            display: block;
+        }
+
+        /* Overlay for Start and Game Over */
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            text-align: center;
+        }
+        #overlay h1 {
+            font-size: 40px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        #finalScore {
+            font-size: 24px;
+            color: #ffcc00;
+            margin-bottom: 20px;
+            display: none;
+        }
+        button {
+            padding: 12px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #00d2ff;
+            color: #000;
+            border: none;
+            border-radius: 50px;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        button:hover {
+            background-color: #00a8cc;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+<div id="gameWrapper">
+    <div id="statusBar">
+        <div id="statusText">Status: Waiting</div>
+        <div id="scoreText">Score: 0</div>
+    </div>
+
+    <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+    <div id="overlay">
+        <h1 id="overlayTitle">Spaceship Dodge</h1>
+        <div id="finalScore"></div>
+        <button id="actionBtn">Start Game</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // UI Elements
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const finalScoreDisplay = document.getElementById('finalScore');
+    const actionBtn = document.getElementById('actionBtn');
+    const statusText = document.getElementById('statusText');
+    const scoreText = document.getElementById('scoreText');
+
+    // Game Variables
+    let gameLoop;
+    let isGameOver = false;
+    let isPlaying = false;
+    let score = 0;
+    
+    // Spaceship Object (adjusted for emoji sizing)
+    const ship = {
+        x: 50,
+        y: canvas.height / 2,
+        size: 40, // Font size for emoji
+        speed: 7,
+        dy: 0,
+        emoji: '🚀'
+    };
+
+    let asteroids = [];
+
+    // Keyboard Controls
+    document.addEventListener('keydown', (e) => {
+        if (!isPlaying) return;
+        if (e.key === 'ArrowUp') ship.dy = -ship.speed;
+        if (e.key === 'ArrowDown') ship.dy = ship.speed;
+    });
+
+    document.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') ship.dy = 0;
+    });
+
+    // Button Click Logic
+    actionBtn.addEventListener('click', () => {
+        overlay.style.display = 'none';
+        resetGame();
+        update();
+    });
+
+    function resetGame() {
+        ship.y = canvas.height / 2;
+        ship.dy = 0;
+        asteroids = [];
+        score = 0;
+        isGameOver = false;
+        isPlaying = true;
+        statusText.innerText = "Status: Flying";
+        statusText.style.color = "#00d2ff";
+        scoreText.innerText = "Score: 0";
+    }
+
+    // Spawn Asteroids
+    function spawnAsteroid() {
+        // Increase difficulty slightly over time based on score
+        let spawnChance = 0.03 + (score * 0.0001); 
+        
+        if (Math.random() < spawnChance) {
+            const size = Math.random() * 30 + 20; // Random size between 20 and 50
+            asteroids.push({
+                x: canvas.width,
+                y: Math.random() * (canvas.height - size - 40) + 40, // Keep below status bar
+                size: size,
+                speed: Math.random() * 4 + 3 + (score * 0.005), // Speed increases slightly over time
+                emoji: '☄️'
+            });
+        }
+    }
+
+    // Draw Elements
+    function drawShip() {
+        ctx.font = `${ship.size}px Arial`;
+        ctx.textBaseline = "top";
+        ctx.fillText(ship.emoji, ship.x, ship.y);
+    }
+
+    function drawAsteroids() {
+        asteroids.forEach(a => {
+            ctx.font = `${a.size}px Arial`;
+            ctx.textBaseline = "top";
+            ctx.fillText(a.emoji, a.x, a.y);
+        });
+    }
+
+    // Collision Detection (adjusted slightly for emoji bounding boxes)
+    function detectCollision(ship, ast) {
+        // We shrink the hit-box slightly so it feels more forgiving and accurate to the emoji shape
+        const padding = 10; 
+        return (
+            ship.x + padding < ast.x + ast.size - padding &&
+            ship.x + ship.size - padding > ast.x + padding &&
+            ship.y + padding < ast.y + ast.size - padding &&
+            ship.y + ship.size - padding > ast.y + padding
+        );
+    }
+
+    // Main Game Loop
+    function update() {
+        if (isGameOver) return;
+
+        // Clear Canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Move Spaceship
+        ship.y += ship.dy;
+
+        // Keep Ship in bounds (account for top status bar)
+        if (ship.y < 40) ship.y = 40;
+        if (ship.y + ship.size > canvas.height) ship.y = canvas.height - ship.size;
+
+        // Handle Asteroids
+        spawnAsteroid();
+        
+        for (let i = 0; i < asteroids.length; i++) {
+            let a = asteroids[i];
+            a.x -= a.speed;
+
+            // Check Collision
+            if (detectCollision(ship, a)) {
+                gameOver();
+                return;
+            }
+
+            // Remove off-screen asteroids
+            if (a.x + a.size < 0) {
+                asteroids.splice(i, 1);
+                i--;
+            }
+        }
+
+        // Update Score
+        score += 0.1;
+        scoreText.innerText = `Score: ${Math.floor(score)}`;
+
+        // Draw Everything
+        drawShip();
+        drawAsteroids();
+
+        gameLoop = requestAnimationFrame(update);
+    }
+
+    function gameOver() {
+        isGameOver = true;
+        isPlaying = false;
+        cancelAnimationFrame(gameLoop);
+        
+        // Draw Explosion over ship
+        ctx.font = `${ship.size + 10}px Arial`;
+        ctx.fillText('💥', ship.x - 5, ship.y - 5);
+
+        // Update UI
+        statusText.innerText = "Status: Destroyed";
+        statusText.style.color = "#ff3333";
+        
+        overlayTitle.innerText = "Game Over!";
+        finalScoreDisplay.innerText = `Final Score: ${Math.floor(score)}`;
+        finalScoreDisplay.style.display = "block";
+        actionBtn.innerText = "Try Again";
+        overlay.style.display = 'flex';
+    }
+</script>
+
+</body>
+</html>
