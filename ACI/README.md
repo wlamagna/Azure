@@ -4,4 +4,6 @@
 
 * game1: Is a vibe coded web game of two snakes put inside a container (ACI).  This is not yet public due lack of time.
 
+* game2: Game created with Gemini.IA of a spaceship that has to fly and not crash with asteroids.
+
 * sshone : an ssh server in a container.  A starting point for anything you can imagine: jumpbox, firewall, ids, logging, etc.  Work in progress.
