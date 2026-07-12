@@ -28,7 +28,8 @@ az aks create --resource-group $RGNAME --name $AKSCLUSTER \
 AKS_ID=$(az aks show --resource-group $RGNAME --name $AKSCLUSTER --query id -o tsv)
 ENTRA_OBJECT_ID=$(az ad signed-in-user show --query id -o tsv)
 ```
-# Grant yourself admin permissions to the cluster using the Azure Kubernetes Service RBAC Cluster Admin role.
+#### Grant yourself admin permissions to the cluster using the Azure Kubernetes Service RBAC Cluster Admin role.
+```
 az role assignment create --role "Azure Kubernetes Service RBAC Cluster Admin" \
 --assignee $ENTRA_OBJECT_ID --scope $AKS_ID
 
@@ -40,47 +41,51 @@ az aks nodepool list \
 
 # az aks nodepool add --resource-group $RGNAME --cluster-name $AKSCLUSTER \
 # --name workernodes --node-count 2 --node-vm-size Standard_D2s_v7 --zones 1
+```
 
-# Add nodes to the user pool:
-az aks nodepool add --resource-group $RGNAME --cluster-name $AKSCLUSTER \
---name userpool1 --node-count 1 --node-vm-size Standard_D2s_v7 --mode User
-
-az aks nodepool scale --resource-group $RGNAME --cluster-name $AKSCLUSTER \
---name userpool1 --node-count 0
-
-az aks nodepool scale --resource-group $RGNAME --cluster-name $AKSCLUSTER \
---name nodepool1 --node-count 0
-
-# Login the Node:
+#### Login the Node:
+```
 az aks get-credentials --resource-group $RGNAME --name $AKSCLUSTER
 # kubectl debug node/aks-nodepool1-33291161-vmss000000 -it --image=mcr.microsoft.com/cbl-mariner/busybox:2.0
 # chroot /host
+```
 
-# Lista los nodos System y User:
+#### Lista los nodos System y User
+```
 kubectl get nodes -o custom-columns=NAME:.metadata.name,STATUS:.status.conditions[-1].type,POOL:.metadata.labels.agentpool,MODE:.metadata.labels."kubernetes\.azure\.com/mode"
+```
 
-# Attach an Azure Container Registry (ACR) - If not attached during creation
+#### Attach an Azure Container Registry (ACR) - If not attached during creation
+```
 # az aks update --resource-group $RGNAME --name $AKSCLUSTER --attach-acr $ACREGISTRY
+```
 
-# Here i create the docker file with a VM
+#### Here i create the docker file with a VM
+```
 az acr show --name $ACREGISTRY --query loginServer --output tsv
+```
 
-
-# Create deployment
+#### Create deployment
+```
 kubectl create deployment myapp --image=$ACREGISTRY.azurecr.io/playerone:v1
+```
 
-#### To access it trough internet:
-# Expose the deployment
+#### To access it trough internet - Expose the deployment
+```
 kubectl expose deployment myapp --type=LoadBalancer --port=80 --target-port=80
-# If not port 80 but 5000, delete and recrete the expose:
+```
+
+#### If not port 80 but 5000, delete and recrete the expose:
+```
 kubectl delete service myapp
 kubectl expose deployment myapp --type=LoadBalancer --port=5000 --target-port=5000
-
-# Get the public IP
+```
+#### Get the public IP
+```
 kubectl get service myapp --watch
 # Access with http://172.173.196.20:5000
-
 # kubectl scale deployment myapp --replicas=2
+```
 
 * Nice picture of two nodes AKS Application:
 ![Topology](KubernetesPod.png)
