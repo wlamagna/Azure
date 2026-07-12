@@ -1,5 +1,4 @@
-#### AKS
-# cloudshell has already kubectl.
+#### An approach to create a two nodes aplication and a single system node aks cluster (for tests).  All from Cloudshell that has already kubectl installed.
 
 RGNAME="test01"
 REGION="eastus"
