@@ -1,5 +1,5 @@
 #### An approach to create a two nodes aplication and a single system node aks cluster (for tests).  All from Cloudshell that has already kubectl installed.
-
+```
 RGNAME="test01"
 REGION="eastus"
 VMNAME="vm01"
@@ -18,16 +18,16 @@ if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
 echo -n "Creating Azure Container Registry "
 az acr create --resource-group $RGNAME --name $ACREGISTRY --sku Basic -o none 2>/dev/null
 if [ $? == 0 ]; then echo "[ok]"; else echo "[x]"; fi;
+```
 
-# First, create the AKS cluster. Every cluster requires a "System" node pool to run core Kubernetes services. To save resources, configure this pool with just 1 small instance.
-# --node-count specifies the system pool.  if --node-count 3 > creates 3 nodes dedicated to system health.
-# you add a user pool after, with another command>
+### First, create the AKS cluster. Every cluster requires a "System" node pool to run core Kubernetes services. To save resources, configure this pool with just 1 small instance.  --node-count specifies the system pool.  if --node-count 3 > creates 3 nodes dedicated to system health. You add a user pool after, with another command>
+```
 az aks create --resource-group $RGNAME --name $AKSCLUSTER \
 --node-count 1 --generate-ssh-keys --attach-acr $ACREGISTRY --node-vm-size Standard_D2s_v7
 
 AKS_ID=$(az aks show --resource-group $RGNAME --name $AKSCLUSTER --query id -o tsv)
 ENTRA_OBJECT_ID=$(az ad signed-in-user show --query id -o tsv)
-
+```
 # Grant yourself admin permissions to the cluster using the Azure Kubernetes Service RBAC Cluster Admin role.
 az role assignment create --role "Azure Kubernetes Service RBAC Cluster Admin" \
 --assignee $ENTRA_OBJECT_ID --scope $AKS_ID
