@@ -82,3 +82,6 @@ kubectl get service myapp --watch
 # Access with http://172.173.196.20:5000
 
 # kubectl scale deployment myapp --replicas=2
+
+* Nice picture of two nodes AKS Application:
+![Topology](KubernetesPod.png)
