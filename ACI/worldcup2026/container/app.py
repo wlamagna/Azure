@@ -35,7 +35,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    description = fr'''
+    description = ( fr'''
     <html>
     <body>
     <pre>
@@ -56,6 +56,9 @@ def home():
     </body>
     </html>
     '''
+    f"{os.getenv('HOSTNAME')}/"
+    f"{os.getenv('POD_UID')}@{os.getenv('POD_NAMESPACE')}"
+    )
     return description
 
 @app.route('/api')
