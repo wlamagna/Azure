@@ -12,3 +12,11 @@ terraform plan
 ```
 terraform apply
 ```
+#### The structure could be
+```
+Terraform  
+|
+|--- rg (tf files for resources that are permanent)
+|--- vms (these could be the temporal vms required to create the docker files)
+```
+

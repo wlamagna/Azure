@@ -1,4 +1,5 @@
 #### These instructions tell how to set up quickly a Linux VM with Docker, create the image and upload it to the Azure Container Registry.  The initial steps are [here](https://github.com/wlamagna/Azure/tree/main/ACI/worldcup2026)
+#### Alternativelly, in the bottom of this page are the instructions to just set up a Virtual Box with Docker in your own PC.  This will save you some dollars becasue creating a VM in Azure jsut for the creation of the image can cost some money, not much really.
 ```
 echo -n "Creating the VM with Docker "
 az vm create --resource-group $RGNAME --name $VMNAME \
@@ -58,6 +59,9 @@ az deployment group create --resource-group $RG --name newdeploy2025v2 \
 ### 1. Create the Linux VM with the Cloud-Init script
 ```
 az vm list-skus --location eastus --size Standard_D --all --output table
+
+## Creating the Virtual Box image
+
 
 
 
