@@ -52,18 +52,17 @@ az deployment group create --resource-group $RG --name newdeploy2025 --template-
 az deployment group create --resource-group $RG --name newdeploy2025v3 --template-file arms/nic.arm
 
 #### Create a VM to Create the Docker files
+```
 az deployment group create --resource-group $RG --name newdeploy2025v2 \
 --template-file arms/newlinuxvm.arm \
 --parameters @arms/newlinuxvm.params
-
-### 1. Create the Linux VM with the Cloud-Init script
 ```
-az vm list-skus --location eastus --size Standard_D --all --output table
 
 ## Creating the Virtual Box image
 ![Topology](VirtualBox.png)
-
+```
 apt-get install apt-transport-https install ca-certificates curl gnupg lsb-release
+```
 
   - mkdir -p /etc/apt/keyrings
   - apt-get install ca-certificates curl gnupg
