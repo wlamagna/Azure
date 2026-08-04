@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain Expiration Tracker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1.25rem;
+            color: #0f172a;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #475569;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Status Badge Styles */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            text-align: center;
+        }
+
+        .badge-red {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-yellow {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-green {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Domain Status Tracker</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Domain Name</th>
+                <th>Days Left</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+            </tr>
+        </thead>
+        <tbody id="domainTableBody">
+            <!-- Rows dynamically calculated and inserted via JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+
+// 1. Define an async function to fetch and parse the CSV
+async function fetchAndParseCSV(csvUrl) {
+    try {
+        const response = await fetch(csvUrl);
+        const csvText = await response.text();
+
+        // 2. Split into lines, handling both Windows and Linux line endings
+        const lines = csvText.trim().split(/\r?\n/);
+        
+        // 3. Skip the header (index 0) and map the rest
+        const domainData = lines.slice(1)
+            .filter(line => line.trim() !== "") // Ignore empty lines
+            .map(line => {
+                // Split by comma
+                const [server, start_date, end_date] = line.split(',');
+                
+                // Map the CSV columns to your exact object structure
+                return {
+                    domain: server.trim(),
+                    startDate: start_date.trim(),
+                    endDate: end_date.trim()
+                };
+            });
+
+        return domainData;
+
+    } catch (error) {
+        console.error("Error reading the CSV file:", error);
+        return [];
+    }
+}
+
+// Usage directly in regular code (no async required):
+/**
+ * Reads a CSV file from the same directory and returns structured domain data.
+ * @param {string} fileName - The filename of the CSV (e.g., 'data.csv')
+ * @returns {Promise<Array<{domain: string, startDate: string, endDate: string}>>}
+ */
+async function loadDomainData(fileName = 'certificates.csv') {
+  try {
+    // 1. Fetch the CSV file from the relative path
+    const response = await fetch(`./${fileName}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const csvText = await response.text();
+
+    // 2. Split text into lines and clean whitespace/blank lines
+    const lines = csvText
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
+    if (lines.length < 2) {
+      return []; // Empty file or headers only
+    }
+
+    // 3. Extract headers and normalize key names
+    const headers = lines[0].split(',').map(header => header.trim());
+
+    // 4. Map remaining rows to objects
+    const domainData = lines.slice(1).map(line => {
+      const values = line.split(',').map(val => val.trim());
+      
+      const rowObject = {};
+      headers.forEach((header, index) => {
+        rowObject[header] = values[index] || '';
+      });
+
+      return rowObject;
+    });
+
+    return domainData;
+
+  } catch (error) {
+    console.error('Failed to load CSV:', error);
+    throw error;
+  }
+}
+
+    // Helper: Reset time to midnight for exact calendar day comparison
+    function getCleanDate(dateStr) {
+        const d = dateStr ? new Date(dateStr) : new Date();
+        d.setHours(0, 0, 0, 0);
+        return d;
+    }
+
+
+// Example using async/await:
+async function init() {
+  const domainData = await loadDomainData('certificates.csv');
+  console.log(domainData);
+
+    // Helper: Reset time to midnight for exact calendar day comparison
+    function getCleanDate(dateStr) {
+        const d = dateStr ? new Date(dateStr) : new Date();
+        d.setHours(0, 0, 0, 0);
+        return d;
+    }
+
+    const today = getCleanDate();
+    const tableBody = document.getElementById("domainTableBody");
+
+    domainData.forEach(row => {
+        const endDate = getCleanDate(row.endDate);
+        
+        // Calculate difference in days
+        const diffTime = endDate - today;
+        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        // 2. Determine badge color class based on days left
+        let badgeClass = "badge-green";
+        if (daysLeft <= 15) {
+            badgeClass = "badge-red";
+        } else if (daysLeft <= 45) {
+            badgeClass = "badge-yellow";
+        }
+
+        // Display string for expired vs active days
+        const displayDays = daysLeft < 0 ? `Expired (${Math.abs(daysLeft)}d ago)` : `${daysLeft} days`;
+
+        // 3. Build table row HTML
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td><strong>${row.domain}</strong></td>
+            <td><span class="badge ${badgeClass}">${displayDays}</span></td>
+            <td>${row.startDate}</td>
+            <td>${row.endDate}</td>
+        `;
+
+        tableBody.appendChild(tr);
+    });
+
+}
+
+init();
+</script>
+
+</body>
+</html>

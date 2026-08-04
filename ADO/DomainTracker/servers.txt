@@ -1,0 +1,4 @@
+microsoft.com
+google.com
+linkedin.com
+azure.com
