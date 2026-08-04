@@ -10,3 +10,5 @@
 #### Today i am inspired, i just did with 0 token and in a few minutes this SSL certs checker.  What what is better, it can run for free thanks
 #### to the Azure Devops Pipelines.
 
+#### Now you can just run this script and have a report and renew the certificate:
+![ReportImage](Report.png)
