@@ -1,0 +1,52 @@
+name: 3.$(Year:yyyy).$(Month)$(DayOfMonth)$(BuildId)$(Rev:.r)
+
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+  
+variables:
+- name: CERT_OUTPUT_FILE
+  value: 'certificates.csv'
+  readonly: true
+
+- name: CERT_INPUT_CONTENT
+  value: ''
+
+steps:
+- checkout: self
+  persistCredentials: true
+
+
+- task: Bash@3
+  displayName: 'Run Shell Script File'
+  inputs:
+    targetType: 'filePath'
+    filePath: '$(Build.SourcesDirectory)/Scripts/retrieveCerts.sh'
+
+- bash: |
+    git config --global user.email "wlamagna@hotmail.com"
+    git config --global user.name "Walter Lamagna"
+
+    git add $(Build.SourcesDirectory)/Scripts/certificates.csv
+    git commit -m "The build update" || echo "None changed"
+
+    git push origin HEAD:main
+  displayName: 'Update repository file certificates.csv'
+
+- script: |
+    # 1. Configurar la identidad de Git
+    git config --global user.email "azure-devops@://azure.com"
+    git config --global user.name "Azure DevOps Pipeline"
+
+    # 2. Comando CORREGIDO: johndoe/my-public-data ya está dentro de la URL real
+    git clone https://wlamagna:$(GITHUBPAT)@github.com/wlamagna/AzureAccess
+    cd AzureAccess
+    cp $(Build.SourcesDirectory)/Scripts/certificates.csv .
+    git add .
+    git commit -m "new certificates file"
+    git push
+
+
+
+

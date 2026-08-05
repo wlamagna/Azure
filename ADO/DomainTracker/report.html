@@ -148,6 +148,7 @@ async function fetchAndParseCSV(csvUrl) {
  * @param {string} fileName - The filename of the CSV (e.g., 'data.csv')
  * @returns {Promise<Array<{domain: string, startDate: string, endDate: string}>>}
  */
+
 async function loadDomainData(fileName = 'certificates.csv') {
   try {
     // 1. Fetch the CSV file from the relative path
