@@ -18,5 +18,8 @@ https://htmlpreview.github.io/?https://github.com/wlamagna/Azure/blob/main/ADO/D
 
 ![ADOImage](ADO.png)
 
+This is the structure of Azure Devops:
+![ADOStructure](ADOStructure.png)
+
 Now you can just run this script and have a report and renew the certificate:
 ![ReportImage](Report.png)
