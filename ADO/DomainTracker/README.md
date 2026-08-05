@@ -5,8 +5,13 @@
 You signin, after a few minutes checking logs you realize that it is an expired certificate.  The certificate is renewed, and all works again.
 #### This things happen, after the root cause analysis it is always the same: the domain was out of the list or not even checked by that expensive
 #### software that only does that: SSL certificate checks.
-#### Today i am inspired, i just did with 0 token and in a few minutes this SSL certs checker.  What what is better, it can run for free thanks
-#### to the Azure Devops Pipelines.
+
+
+#### Today i am inspired and did in a few minutes this SSL certs checker.  The best is that i find it elegant, and most important: for free !!
+The strategy is the following:
+
+Azure Pipeline -> Retrieves certificates , updates certificates.csv -> Push it to Github --> access the report that reads the updated file.
+![ADOImage](ADO.png)
 
 #### Now you can just run this script and have a report and renew the certificate:
 ![ReportImage](Report.png)
