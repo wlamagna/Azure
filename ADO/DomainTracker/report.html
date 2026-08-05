@@ -152,7 +152,8 @@ async function fetchAndParseCSV(csvUrl) {
 async function loadDomainData(fileName = 'certificates.csv') {
   try {
     // 1. Fetch the CSV file from the relative path
-    const response = await fetch(`./${fileName}`);
+    //const response = await fetch(`./${fileName}`);
+    const response = await fetch(fileName);
     
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
@@ -203,7 +204,8 @@ async function loadDomainData(fileName = 'certificates.csv') {
 
 // Example using async/await:
 async function init() {
-  const domainData = await loadDomainData('certificates.csv');
+  //const domainData = await loadDomainData('certificates.csv');
+  const domainData = await loadDomainData('https://raw.githubusercontent.com/wlamagna/AzureAccess/refs/heads/main/certificates.csv');
   console.log(domainData);
 
     // Helper: Reset time to midnight for exact calendar day comparison
