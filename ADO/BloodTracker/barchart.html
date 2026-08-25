@@ -59,7 +59,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Visualizador de Stock - Reserva de Sangre</h1>
+    <h1>Visualizador de Stock - La Reserva de Sangre</h1>
     
     <div class="controls">
       <label>
@@ -99,11 +99,7 @@
           parseAndRender(tsvText);
           document.getElementById('statusMessage').textContent = 'Datos cargados automáticamente.';
         })
-        .catch(err => {
-          console.error(err);
-          document.getElementById('statusMessage').style.color = '#ef4444';
-          document.getElementById('statusMessage').textContent = 'Error: Asegúrate de servir la página desde un servidor local (ej: Live Server).';
-        });
+        .catch(error => console.error("Error loading CSV:", error));
 
 
     document.getElementById('sortOrder').addEventListener('change', updateChart);
