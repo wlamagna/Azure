@@ -88,7 +88,6 @@
     let chartInstance = null;
 
     // Load file automatically when page renders
-    document.addEventListener('DOMContentLoaded', () => {
       fetch('https://raw.githubusercontent.com/wlamagna/AzureAccess/refs/heads/main/reservasangre.tsv')
         .then(response => {
           if (!response.ok) {
@@ -105,7 +104,7 @@
           document.getElementById('statusMessage').style.color = '#ef4444';
           document.getElementById('statusMessage').textContent = 'Error: Asegúrate de servir la página desde un servidor local (ej: Live Server).';
         });
-    });
+
 
     document.getElementById('sortOrder').addEventListener('change', updateChart);
     document.getElementById('hideZero').addEventListener('change', updateChart);
