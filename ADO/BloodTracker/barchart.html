@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizador de Stock - Reservas de Sangre</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 20px;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      margin-top: 0;
+      color: #0f172a;
+      font-size: 1.5rem;
+    }
+    .controls {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: #f1f5f9;
+      border-radius: 8px;
+    }
+    select, label {
+      font-size: 14px;
+      cursor: pointer;
+    }
+    select {
+      padding: 6px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: white;
+    }
+    .chart-box {
+      position: relative;
+      height: 65vh;
+      width: 100%;
+    }
+    #statusMessage {
+      font-weight: 500;
+      font-size: 14px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Visualizador de Stock - Reserva de Sangre</h1>
+    
+    <div class="controls">
+      <label>
+        <strong>Ordenar:</strong>
+        <select id="sortOrder">
+          <option value="none">Orden original</option>
+          <option value="desc">Mayor a menor stock</option>
+          <option value="asc">Menor a mayor stock</option>
+        </select>
+      </label>
+
+      <label>
+        <input type="checkbox" id="hideZero"> Ocultar centros con stock 0
+      </label>
+
+      <span id="statusMessage">Cargando datos...</span>
+    </div>
+
+    <div class="chart-box">
+      <canvas id="stockChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    let rawData = [];
+    let chartInstance = null;
+
+    // Load file automatically when page renders
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch('https://raw.githubusercontent.com/wlamagna/AzureAccess/refs/heads/main/reservasangre.tsv')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Error al cargar reservasangre.tsv (${response.status})`);
+          }
+          return response.text();
+        })
+        .then(tsvText => {
+          parseAndRender(tsvText);
+          document.getElementById('statusMessage').textContent = 'Datos cargados automáticamente.';
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById('statusMessage').style.color = '#ef4444';
+          document.getElementById('statusMessage').textContent = 'Error: Asegúrate de servir la página desde un servidor local (ej: Live Server).';
+        });
+    });
+
+    document.getElementById('sortOrder').addEventListener('change', updateChart);
+    document.getElementById('hideZero').addEventListener('change', updateChart);
+
+    function parseAndRender(tsvText) {
+      // Remove potential UTF-8 BOM characters (\ufeff)
+      const cleanText = tsvText.replace(/^\uFEFF/, '').trim();
+      const lines = cleanText.split(/\r?\n/);
+      if (lines.length < 2) return;
+
+      const headers = lines[0].split('\t').map(h => h.replace(/^"|"$/g, '').trim());
+      const stockIdx = headers.findIndex(h => h.toLowerCase() === 'stock');
+      const nameIdx = headers.findIndex(h => h.toLowerCase() === 'nombre');
+
+      if (stockIdx === -1 || nameIdx === -1) {
+        alert('No se encontraron las columnas "nombre" o "stock" en el archivo TSV.');
+        return;
+      }
+
+      rawData = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split('\t').map(c => c.replace(/^"|"$/g, '').trim());
+        if (cols.length > stockIdx) {
+          const name = cols[nameIdx] || `Centro ${i}`;
+          const stock = parseFloat(cols[stockIdx]) || 0;
+          rawData.push({ name, stock });
+        }
+      }
+
+      updateChart();
+    }
+
+    function updateChart() {
+      if (!rawData.length) return;
+
+      let filtered = [...rawData];
+
+      if (document.getElementById('hideZero').checked) {
+        filtered = filtered.filter(item => item.stock > 0);
+      }
+
+      const sortVal = document.getElementById('sortOrder').value;
+      if (sortVal === 'desc') {
+        filtered.sort((a, b) => b.stock - a.stock);
+      } else if (sortVal === 'asc') {
+        filtered.sort((a, b) => a.stock - b.stock);
+      }
+
+      const labels = filtered.map(item => item.name);
+      const dataValues = filtered.map(item => item.stock);
+
+      const ctx = document.getElementById('stockChart').getContext('2d');
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Stock Disponible',
+            data: dataValues,
+            backgroundColor: 'rgba(225, 29, 72, 0.75)',
+            borderColor: 'rgba(190, 18, 60, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true, position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: (context) => `Stock: ${context.parsed.y.toFixed(2)}`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'Nivel de Stock' }
+            },
+            x: {
+              ticks: {
+                autoSkip: false,
+                maxRotation: 90,
+                minRotation: 45,
+                font: { size: 10 }
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
