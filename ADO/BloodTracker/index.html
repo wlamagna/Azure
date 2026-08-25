@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reserva CSV Data</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f6f8;
+    }
+    h2 {
+      color: #333;
+    }
+    .controls {
+      margin-bottom: 15px;
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .table-container {
+      overflow-x: auto;
+      max-height: 80vh;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+      position: sticky;
+      top: 0;
+      user-select: none;
+    }
+    th.sortable {
+      cursor: pointer;
+    }
+    th.sortable:hover {
+      background-color: #0056b3;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Reserva Data Table</h2>
+  <div class="controls">
+    <button id="sortBtn">Sort by Stock (Ascending)</button>
+  </div>
+
+  <div class="table-container">
+    <table id="csvTable">
+      <thead>
+        <tr id="tableHead"></tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    let csvData = [];
+    let headers = [];
+    let sortAscending = true;
+
+    // Fetch and read reserva.csv using Ajax (Fetch API)
+    fetch('reserva.csv')
+      .then(response => {
+        if (!response.ok) throw new Error("Could not load file reserva.csv");
+        return response.text();
+      })
+      .then(text => {
+        parseCSV(text);
+        renderTable();
+      })
+      .catch(error => console.error("Error loading CSV:", error));
+
+    // Simple Tab-separated CSV parser (handles quotes)
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length === 0) return;
+
+      headers = lines[0].split('\t').map(h => h.trim());
+
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const values = lines[i].split('\t').map(v => v.replace(/^"|"$/g, '').trim());
+        
+        let rowObj = {};
+        headers.forEach((header, index) => {
+          rowObj[header] = values[index] !== undefined ? values[index] : '';
+        });
+        csvData.push(rowObj);
+      }
+    }
+
+    // Render data inside HTML Table
+    function renderTable() {
+      const thead = document.getElementById('tableHead');
+      const tbody = document.getElementById('tableBody');
+
+      // Render Header
+      thead.innerHTML = headers.map(h => {
+        if (h.toLowerCase() === 'stock') {
+          return `<th class="sortable" onclick="sortByStock()">${h} &#x21D5;</th>`;
+        }
+        return `<th>${h}</th>`;
+      }).join('');
+
+      // Render Rows
+      tbody.innerHTML = csvData.map(row => {
+        return `<tr>` + headers.map(h => `<td>${row[h] || ''}</td>`).join('') + `</tr>`;
+      }).join('');
+    }
+
+    // Sort function by "stock" numeric column
+    function sortByStock() {
+      csvData.sort((a, b) => {
+        const valA = parseFloat(a.stock) || 0;
+        const valB = parseFloat(b.stock) || 0;
+        return sortAscending ? valA - valB : valB - valA;
+      });
+
+      sortAscending = !sortAscending;
+      document.getElementById('sortBtn').innerText = `Sort by Stock (${sortAscending ? 'Ascending' : 'Descending'})`;
+      renderTable();
+    }
+
+    document.getElementById('sortBtn').addEventListener('click', sortByStock);
+  </script>
+</body>
+</html>
