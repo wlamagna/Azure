@@ -1,4 +1,8 @@
 ## Blood Availability tracker
+
+### DISCLAIMER: I just crawled the data from this DonARG website and present ir as it is available, and only do some presentations based on the column title.  I take no responsibility for any mis-information and i also recommend to not take any decision with this data.  It is only academic purpose.
+
+
 ### Today was not any other day, today i went to donate blood in the hostpital.
 #### The webpage displays a MAP with the amount of blood available, it is difficult to retreive this data because there is no API.  But why
 is there no API ? With helps of Some Scripting in Bash + Python plus the Azure Devops Pipelines and Github i created an automation that
