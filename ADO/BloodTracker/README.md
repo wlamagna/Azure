@@ -9,7 +9,11 @@ i also have a webpage that displays this info.  Similar to the CertChecker that 
 2) The pipeline updates the file in its own repository
 3) Then it pushes it to the github public repository https://github.com/wlamagna/AzureAccess using a Personal Access Token (It is in a secret)
 4) The Report reads this file :
+A) Sortable table:
 https://htmlpreview.github.io/?https://github.com/wlamagna/Azure/blob/main/ADO/BloodTracker/index.html
+
+B) Sortable bar chart:
+https://htmlpreview.github.io/?https://github.com/wlamagna/Azure/blob/main/ADO/BloodTracker/barchart.html
 
 This is the structure of Azure Devops:
 ![ADOStructure](ADOStructure.png)
